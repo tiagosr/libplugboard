@@ -37,36 +37,31 @@ static void print_perform(void *obj, t_any data, void*idata)
         size_t partsize = 0;
         switch (data.type) {
             case t_type_int:
-                partsize = sprintf(0, "%d",data.i_data);
-                part_message = malloc(partsize);
-                sprintf(part_message, "%d",data.i_data);
+                asprintf(&part_message, "%d",data.i_data);
                 break;
             case t_type_float:
-                partsize = sprintf(0, "%f",data.f_data);
-                part_message = malloc(partsize);
-                sprintf(part_message, "%f",data.f_data);
+                asprintf(&part_message, "%f",data.f_data);
                 break;
             case t_type_sym:
             case t_type_string:
-                part_message = data.string;
+                part_message = strdup(data.string);
+                break;
+            case t_type_trigger:
+                part_message = strdup("bang!");
                 break;
             default:
-                partsize = sprintf(0, "<type %d object at 0x%X>", data.type, (unsigned)data.something);
-                part_message = malloc(partsize);
-                sprintf(part_message, "<type %d object at 0x%X>", data.type, (unsigned)data.something);
+                asprintf(&part_message, "<type %d object at 0x%X>", data.type, (unsigned)data.something);
                 break;
         }
         print_data_obj *pobj = obj;
         char *message;
         if (pobj->description) {
-            size_t strsize = sprintf(0, "%s: %s",pobj->description, part_message);
-            message = malloc(strsize);
-            sprintf(message, "%s: %s",pobj->description, part_message);
+            asprintf(&message, "%s: %s",pobj->description, part_message);
         } else {
             message = strdup(part_message);
         }
         internal_print_hook(message);
-        if (partsize) free(part_message);
+        if (part_message) free(part_message);
         free(message);
     }
 }

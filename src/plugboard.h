@@ -170,6 +170,8 @@ t_plugobj* p_create_plugobj(const char* spec);
 int p_connect(t_plugobj *from, int outlet, t_plugobj *to, int inlet);
 void p_destroy(t_plugobj* obj);
 
+void p_bang(t_plugobj *obj, int inlet);
+
 void p_setup(void);
 
 
