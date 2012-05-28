@@ -6,8 +6,63 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B185281915698C60009D3DA8 /* plugboard-lib-std-basicarith.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453015606BA300F22DD3 /* plugboard-lib-std-basicarith.c */; };
+		B185281B15698C6E009D3DA8 /* plugboard-lib-std-basictypes.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453215606BA300F22DD3 /* plugboard-lib-std-basictypes.c */; };
+		B185281C15698C6E009D3DA8 /* plugboard-lib-std-control.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453415606BA300F22DD3 /* plugboard-lib-std-control.c */; };
+		B185281D15698C6E009D3DA8 /* plugboard-lib-std-debug.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453615606BA300F22DD3 /* plugboard-lib-std-debug.c */; };
+		B185281E15698C6E009D3DA8 /* plugboard-lib-std.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453815606BA300F22DD3 /* plugboard-lib-std.c */; };
+		B185281F15698C6E009D3DA8 /* plugboard.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453B15606BA300F22DD3 /* plugboard.c */; };
+		B18528281569C526009D3DA8 /* plugboard-lib-std-basicarith.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453115606BA300F22DD3 /* plugboard-lib-std-basicarith.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B18528291569C526009D3DA8 /* plugboard-lib-std-basictypes.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453315606BA300F22DD3 /* plugboard-lib-std-basictypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B185282A1569C526009D3DA8 /* plugboard-lib-std-control.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453515606BA300F22DD3 /* plugboard-lib-std-control.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B185282B1569C526009D3DA8 /* plugboard-lib-std-debug.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453715606BA300F22DD3 /* plugboard-lib-std-debug.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B185282C1569C526009D3DA8 /* plugboard-lib-std.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453915606BA300F22DD3 /* plugboard-lib-std.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B185282D1569C526009D3DA8 /* plugboard-utils.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453A15606BA300F22DD3 /* plugboard-utils.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B185282E1569C526009D3DA8 /* plugboard.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453C15606BA300F22DD3 /* plugboard.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B18528AA15717C09009D3DA8 /* plugboard-lib-std-string.h in Headers */ = {isa = PBXBuildFile; fileRef = B18528A915717C09009D3DA8 /* plugboard-lib-std-string.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B18528AB15717C14009D3DA8 /* plugboard-lib-std-string.h in Headers */ = {isa = PBXBuildFile; fileRef = B18528A915717C09009D3DA8 /* plugboard-lib-std-string.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B18528AD15717C34009D3DA8 /* plugboard-lib-std-string.c in Sources */ = {isa = PBXBuildFile; fileRef = B18528AC15717C33009D3DA8 /* plugboard-lib-std-string.c */; };
+		B18528AE15717C34009D3DA8 /* plugboard-lib-std-string.c in Sources */ = {isa = PBXBuildFile; fileRef = B18528AC15717C33009D3DA8 /* plugboard-lib-std-string.c */; };
+		B18B453D15606BA300F22DD3 /* plugboard-lib-std-basicarith.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453015606BA300F22DD3 /* plugboard-lib-std-basicarith.c */; };
+		B18B453E15606BA300F22DD3 /* plugboard-lib-std-basicarith.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453115606BA300F22DD3 /* plugboard-lib-std-basicarith.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B18B453F15606BA300F22DD3 /* plugboard-lib-std-basictypes.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453215606BA300F22DD3 /* plugboard-lib-std-basictypes.c */; };
+		B18B454015606BA300F22DD3 /* plugboard-lib-std-basictypes.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453315606BA300F22DD3 /* plugboard-lib-std-basictypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B18B454115606BA300F22DD3 /* plugboard-lib-std-control.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453415606BA300F22DD3 /* plugboard-lib-std-control.c */; };
+		B18B454215606BA300F22DD3 /* plugboard-lib-std-control.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453515606BA300F22DD3 /* plugboard-lib-std-control.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B18B454315606BA300F22DD3 /* plugboard-lib-std-debug.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453615606BA300F22DD3 /* plugboard-lib-std-debug.c */; };
+		B18B454415606BA300F22DD3 /* plugboard-lib-std-debug.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453715606BA300F22DD3 /* plugboard-lib-std-debug.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B18B454515606BA300F22DD3 /* plugboard-lib-std.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453815606BA300F22DD3 /* plugboard-lib-std.c */; };
+		B18B454615606BA300F22DD3 /* plugboard-lib-std.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453915606BA300F22DD3 /* plugboard-lib-std.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B18B454715606BA300F22DD3 /* plugboard-utils.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453A15606BA300F22DD3 /* plugboard-utils.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B18B454815606BA300F22DD3 /* plugboard.c in Sources */ = {isa = PBXBuildFile; fileRef = B18B453B15606BA300F22DD3 /* plugboard.c */; };
+		B18B454915606BA300F22DD3 /* plugboard.h in Headers */ = {isa = PBXBuildFile; fileRef = B18B453C15606BA300F22DD3 /* plugboard.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B18B4551156074CA00F22DD3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B18B4550156074CA00F22DD3 /* Foundation.framework */; };
+		B18B4557156074CA00F22DD3 /* libplugboard_ios.m in Sources */ = {isa = PBXBuildFile; fileRef = B18B4556156074CA00F22DD3 /* libplugboard_ios.m */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		B18528A915717C09009D3DA8 /* plugboard-lib-std-string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "plugboard-lib-std-string.h"; sourceTree = "<group>"; };
+		B18528AC15717C33009D3DA8 /* plugboard-lib-std-string.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "plugboard-lib-std-string.c"; sourceTree = "<group>"; };
 		B18B450E156066CB00F22DD3 /* liblibplugboard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = liblibplugboard.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		B18B453015606BA300F22DD3 /* plugboard-lib-std-basicarith.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "plugboard-lib-std-basicarith.c"; sourceTree = "<group>"; };
+		B18B453115606BA300F22DD3 /* plugboard-lib-std-basicarith.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "plugboard-lib-std-basicarith.h"; sourceTree = "<group>"; };
+		B18B453215606BA300F22DD3 /* plugboard-lib-std-basictypes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "plugboard-lib-std-basictypes.c"; sourceTree = "<group>"; };
+		B18B453315606BA300F22DD3 /* plugboard-lib-std-basictypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "plugboard-lib-std-basictypes.h"; sourceTree = "<group>"; };
+		B18B453415606BA300F22DD3 /* plugboard-lib-std-control.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "plugboard-lib-std-control.c"; sourceTree = "<group>"; };
+		B18B453515606BA300F22DD3 /* plugboard-lib-std-control.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "plugboard-lib-std-control.h"; sourceTree = "<group>"; };
+		B18B453615606BA300F22DD3 /* plugboard-lib-std-debug.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "plugboard-lib-std-debug.c"; sourceTree = "<group>"; };
+		B18B453715606BA300F22DD3 /* plugboard-lib-std-debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "plugboard-lib-std-debug.h"; sourceTree = "<group>"; };
+		B18B453815606BA300F22DD3 /* plugboard-lib-std.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "plugboard-lib-std.c"; sourceTree = "<group>"; };
+		B18B453915606BA300F22DD3 /* plugboard-lib-std.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "plugboard-lib-std.h"; sourceTree = "<group>"; };
+		B18B453A15606BA300F22DD3 /* plugboard-utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "plugboard-utils.h"; sourceTree = "<group>"; };
+		B18B453B15606BA300F22DD3 /* plugboard.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = plugboard.c; sourceTree = "<group>"; };
+		B18B453C15606BA300F22DD3 /* plugboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plugboard.h; sourceTree = "<group>"; };
+		B18B454E156074CA00F22DD3 /* liblibplugboard-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "liblibplugboard-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B18B4550156074CA00F22DD3 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		B18B4554156074CA00F22DD3 /* libplugboard-ios-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "libplugboard-ios-Prefix.pch"; sourceTree = "<group>"; };
+		B18B4555156074CA00F22DD3 /* libplugboard_ios.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libplugboard_ios.h; sourceTree = "<group>"; };
+		B18B4556156074CA00F22DD3 /* libplugboard_ios.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = libplugboard_ios.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -18,12 +73,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B18B454B156074CA00F22DD3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B18B4551156074CA00F22DD3 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		B18B4503156066CB00F22DD3 = {
 			isa = PBXGroup;
 			children = (
+				B18B4515156066DC00F22DD3 /* Source */,
+				B18B4552156074CA00F22DD3 /* libplugboard-ios */,
+				B18B454F156074CA00F22DD3 /* Frameworks */,
 				B18B450F156066CB00F22DD3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -32,8 +98,58 @@
 			isa = PBXGroup;
 			children = (
 				B18B450E156066CB00F22DD3 /* liblibplugboard.a */,
+				B18B454E156074CA00F22DD3 /* liblibplugboard-ios.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B18B4515156066DC00F22DD3 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				B18528A915717C09009D3DA8 /* plugboard-lib-std-string.h */,
+				B18528AC15717C33009D3DA8 /* plugboard-lib-std-string.c */,
+				B18B453015606BA300F22DD3 /* plugboard-lib-std-basicarith.c */,
+				B18B453115606BA300F22DD3 /* plugboard-lib-std-basicarith.h */,
+				B18B453215606BA300F22DD3 /* plugboard-lib-std-basictypes.c */,
+				B18B453315606BA300F22DD3 /* plugboard-lib-std-basictypes.h */,
+				B18B453415606BA300F22DD3 /* plugboard-lib-std-control.c */,
+				B18B453515606BA300F22DD3 /* plugboard-lib-std-control.h */,
+				B18B453615606BA300F22DD3 /* plugboard-lib-std-debug.c */,
+				B18B453715606BA300F22DD3 /* plugboard-lib-std-debug.h */,
+				B18B453815606BA300F22DD3 /* plugboard-lib-std.c */,
+				B18B453915606BA300F22DD3 /* plugboard-lib-std.h */,
+				B18B453A15606BA300F22DD3 /* plugboard-utils.h */,
+				B18B453B15606BA300F22DD3 /* plugboard.c */,
+				B18B453C15606BA300F22DD3 /* plugboard.h */,
+			);
+			name = Source;
+			path = src;
+			sourceTree = "<group>";
+		};
+		B18B454F156074CA00F22DD3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B18B4550156074CA00F22DD3 /* Foundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B18B4552156074CA00F22DD3 /* libplugboard-ios */ = {
+			isa = PBXGroup;
+			children = (
+				B18B4555156074CA00F22DD3 /* libplugboard_ios.h */,
+				B18B4556156074CA00F22DD3 /* libplugboard_ios.m */,
+				B18B4553156074CA00F22DD3 /* Supporting Files */,
+			);
+			path = "libplugboard-ios";
+			sourceTree = "<group>";
+		};
+		B18B4553156074CA00F22DD3 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				B18B4554156074CA00F22DD3 /* libplugboard-ios-Prefix.pch */,
+			);
+			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -43,6 +159,29 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B18B453E15606BA300F22DD3 /* plugboard-lib-std-basicarith.h in Headers */,
+				B18B454015606BA300F22DD3 /* plugboard-lib-std-basictypes.h in Headers */,
+				B18B454215606BA300F22DD3 /* plugboard-lib-std-control.h in Headers */,
+				B18B454415606BA300F22DD3 /* plugboard-lib-std-debug.h in Headers */,
+				B18B454615606BA300F22DD3 /* plugboard-lib-std.h in Headers */,
+				B18B454715606BA300F22DD3 /* plugboard-utils.h in Headers */,
+				B18B454915606BA300F22DD3 /* plugboard.h in Headers */,
+				B18528AA15717C09009D3DA8 /* plugboard-lib-std-string.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B18B454C156074CA00F22DD3 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B18528281569C526009D3DA8 /* plugboard-lib-std-basicarith.h in Headers */,
+				B18528291569C526009D3DA8 /* plugboard-lib-std-basictypes.h in Headers */,
+				B185282A1569C526009D3DA8 /* plugboard-lib-std-control.h in Headers */,
+				B185282B1569C526009D3DA8 /* plugboard-lib-std-debug.h in Headers */,
+				B185282C1569C526009D3DA8 /* plugboard-lib-std.h in Headers */,
+				B185282D1569C526009D3DA8 /* plugboard-utils.h in Headers */,
+				B185282E1569C526009D3DA8 /* plugboard.h in Headers */,
+				B18528AB15717C14009D3DA8 /* plugboard-lib-std-string.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -64,6 +203,23 @@
 			name = libplugboard;
 			productName = libplugboard;
 			productReference = B18B450E156066CB00F22DD3 /* liblibplugboard.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		B18B454D156074CA00F22DD3 /* libplugboard-ios */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B18B4558156074CA00F22DD3 /* Build configuration list for PBXNativeTarget "libplugboard-ios" */;
+			buildPhases = (
+				B18B454A156074CA00F22DD3 /* Sources */,
+				B18B454B156074CA00F22DD3 /* Frameworks */,
+				B18B454C156074CA00F22DD3 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "libplugboard-ios";
+			productName = "libplugboard-ios";
+			productReference = B18B454E156074CA00F22DD3 /* liblibplugboard-ios.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -88,6 +244,7 @@
 			projectRoot = "";
 			targets = (
 				B18B450D156066CB00F22DD3 /* libplugboard */,
+				B18B454D156074CA00F22DD3 /* libplugboard-ios */,
 			);
 		};
 /* End PBXProject section */
@@ -97,6 +254,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B18B453D15606BA300F22DD3 /* plugboard-lib-std-basicarith.c in Sources */,
+				B18B453F15606BA300F22DD3 /* plugboard-lib-std-basictypes.c in Sources */,
+				B18B454115606BA300F22DD3 /* plugboard-lib-std-control.c in Sources */,
+				B18B454315606BA300F22DD3 /* plugboard-lib-std-debug.c in Sources */,
+				B18B454515606BA300F22DD3 /* plugboard-lib-std.c in Sources */,
+				B18B454815606BA300F22DD3 /* plugboard.c in Sources */,
+				B18528AD15717C34009D3DA8 /* plugboard-lib-std-string.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B18B454A156074CA00F22DD3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B18B4557156074CA00F22DD3 /* libplugboard_ios.m in Sources */,
+				B185281915698C60009D3DA8 /* plugboard-lib-std-basicarith.c in Sources */,
+				B185281B15698C6E009D3DA8 /* plugboard-lib-std-basictypes.c in Sources */,
+				B185281C15698C6E009D3DA8 /* plugboard-lib-std-control.c in Sources */,
+				B185281D15698C6E009D3DA8 /* plugboard-lib-std-debug.c in Sources */,
+				B185281E15698C6E009D3DA8 /* plugboard-lib-std.c in Sources */,
+				B185281F15698C6E009D3DA8 /* plugboard.c in Sources */,
+				B18528AE15717C34009D3DA8 /* plugboard-lib-std-string.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -164,6 +343,37 @@
 			};
 			name = Release;
 		};
+		B18B4559156074CA00F22DD3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				DSTROOT = /tmp/libplugboard_ios.dst;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "libplugboard-ios/libplugboard-ios-Prefix.pch";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		B18B455A156074CA00F22DD3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				DSTROOT = /tmp/libplugboard_ios.dst;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "libplugboard-ios/libplugboard-ios-Prefix.pch";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -183,6 +393,16 @@
 				B18B4514156066CB00F22DD3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B18B4558156074CA00F22DD3 /* Build configuration list for PBXNativeTarget "libplugboard-ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B18B4559156074CA00F22DD3 /* Debug */,
+				B18B455A156074CA00F22DD3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
