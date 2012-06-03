@@ -34,8 +34,8 @@ typedef struct t_args {int argc; char **argv;} t_args;
  * or nil if the creation process failed.
  */
 typedef void* (*t_plugobj_creator_fn)(int argc, char **argv);
-typedef void (*t_plugobj_destructor_fn)(t_plugobj *obj);
-typedef void (*t_plugobj_redraw_fn)(t_plugobj *obj, t_any data,
+typedef void (*t_plugobj_destructor_fn)(void *obj);
+typedef void (*t_plugobj_redraw_fn)(void *obj, t_any data,
                                     void *classdrawdata);
 
 enum t_data_types {

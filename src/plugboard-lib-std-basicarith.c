@@ -25,14 +25,14 @@ static void i_add_perform(void *obj, int num, void *idata)
 {
     i_offset_obj *iobj = obj;
     iobj->result = num + iobj->offset;
-    p_outlet_send_int(obj, 0, iobj->result);
+    o_int(obj, 0, iobj->result);
 }
 
 static void i_sub_perform(void *obj, int num, void *idata)
 {
     i_offset_obj *iobj = obj;
     iobj->result = num - iobj->offset;
-    p_outlet_send_int(obj, 0, iobj->result);
+    o_int(obj, 0, iobj->result);
 }
 
 static void i_set_offset(void *obj, int num, void *idata)
@@ -44,7 +44,7 @@ static void i_mul_perform(void *obj, int num, void *idata)
 {
     i_offset_obj *iobj = (i_offset_obj *)obj;
     iobj->result = num * iobj->offset;
-    p_outlet_send_int(obj, 0, iobj->result);
+    o_int(obj, 0, iobj->result);
 }
 
 static void i_div_setfactor(void *obj, int num, void *idata)
@@ -60,14 +60,14 @@ static void i_shl_perform(void *obj, int num, void *idata)
 {
     i_offset_obj *iobj = obj;
     iobj->result = num << iobj->offset;
-    p_outlet_send_int(obj, 0, iobj->result);
+    o_int(obj, 0, iobj->result);
 }
 
 static void i_shr_perform(void *obj, int num, void *idata)
 {
     i_offset_obj *iobj = obj;
     iobj->result = num >> iobj->offset;
-    p_outlet_send_int(obj, 0, iobj->result);
+    o_int(obj, 0, iobj->result);
 }
 
 static void i_shift_setoffset(void *obj, int num, void *idata)
@@ -77,7 +77,7 @@ static void i_shift_setoffset(void *obj, int num, void *idata)
 
 static void i_send_result(void *obj, void *idata)
 {
-    p_outlet_send_int(obj, 0, ((i_offset_obj *)obj)->result);
+    o_int(obj, 0, ((i_offset_obj *)obj)->result);
 }
 
 static void* i_add_create(int argc, char **argv)
@@ -88,17 +88,17 @@ static void* i_add_create(int argc, char **argv)
     } else {
         iobj->offset = 0;
     }
-    p_begin_inlet_fn_list(fns0)
-        p_inlet_fn_int(i_add_perform),
-        p_inlet_fn_trigger(i_send_result),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fns1)
-        p_inlet_fn_int(i_set_offset),
-    p_end_inlet_fn_list
+    inlet_fn_list(fns0)
+        i_fn_int(i_add_perform),
+        i_fn_trigger(i_send_result),
+    inlet_fn_list_end
+    inlet_fn_list(fns1)
+        i_fn_int(i_set_offset),
+    inlet_fn_list_end
     
-    p_add_inlet(iobj,"value", fns0, NULL);
-    p_add_inlet(iobj,"offset", fns1, NULL);
-    p_add_outlet(iobj,"result");
+    add_inlet(iobj,"value", fns0, NULL);
+    add_inlet(iobj,"offset", fns1, NULL);
+    add_outlet(iobj,"result");
     return iobj;
 }
 
@@ -110,17 +110,17 @@ static void* i_sub_create(int argc, char **argv)
     } else {
         iobj->offset = 0;
     }
-    p_begin_inlet_fn_list(fns0)
-        p_inlet_fn_int(i_sub_perform),
-        p_inlet_fn_trigger(i_send_result),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fns1)
-        p_inlet_fn_int(i_set_offset),
-    p_end_inlet_fn_list
+    inlet_fn_list(fns0)
+        i_fn_int(i_sub_perform),
+        i_fn_trigger(i_send_result),
+    inlet_fn_list_end
+    inlet_fn_list(fns1)
+        i_fn_int(i_set_offset),
+    inlet_fn_list_end
     
-    p_add_inlet(iobj, "value", fns0, NULL);
-    p_add_inlet(iobj, "offset", fns1, NULL);
-    p_add_outlet(iobj, "result");
+    add_inlet(iobj, "value", fns0, NULL);
+    add_inlet(iobj, "offset", fns1, NULL);
+    add_outlet(iobj, "result");
     return iobj;
 }
 
@@ -132,17 +132,17 @@ static void* i_mul_create(int argc, char **argv)
     } else {
         iobj->offset = 0;
     }
-    p_begin_inlet_fn_list(fns0)
-        p_inlet_fn_int(i_mul_perform),
-        p_inlet_fn_trigger(i_send_result),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fns1)
-        p_inlet_fn_int(i_set_offset),
-    p_end_inlet_fn_list
+    inlet_fn_list(fns0)
+        i_fn_int(i_mul_perform),
+        i_fn_trigger(i_send_result),
+    inlet_fn_list_end
+    inlet_fn_list(fns1)
+        i_fn_int(i_set_offset),
+    inlet_fn_list_end
     
-    p_add_inlet(iobj, "value", fns0, NULL);
-    p_add_inlet(iobj, "factor", fns1, NULL);
-    p_add_outlet(iobj, "result");
+    add_inlet(iobj, "value", fns0, NULL);
+    add_inlet(iobj, "factor", fns1, NULL);
+    add_outlet(iobj, "result");
     return iobj;
 }
 
@@ -154,17 +154,17 @@ static void* i_div_create(int argc, char **argv)
     } else {
         iobj->offset = 0;
     }
-    p_begin_inlet_fn_list(fns0)
-        p_inlet_fn_int(i_mul_perform),
-        p_inlet_fn_trigger(i_send_result),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fns1)
-        p_inlet_fn_int(i_div_setfactor),
-    p_end_inlet_fn_list
+    inlet_fn_list(fns0)
+        i_fn_int(i_mul_perform),
+        i_fn_trigger(i_send_result),
+    inlet_fn_list_end
+    inlet_fn_list(fns1)
+        i_fn_int(i_div_setfactor),
+    inlet_fn_list_end
     
-    p_add_inlet(iobj, "value", fns0, NULL);
-    p_add_inlet(iobj, "ratio", fns1, NULL);
-    p_add_outlet(iobj, "result");
+    add_inlet(iobj, "value", fns0, NULL);
+    add_inlet(iobj, "ratio", fns1, NULL);
+    add_outlet(iobj, "result");
     return iobj;
 }
 
@@ -176,17 +176,17 @@ static void* i_shl_create(int argc, char **argv)
     } else {
         iobj->offset = 0;
     }
-    p_begin_inlet_fn_list(fns0)
-    p_inlet_fn_int(i_shl_perform),
-    p_inlet_fn_trigger(i_send_result),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fns1)
-    p_inlet_fn_int(i_shift_setoffset),
-    p_end_inlet_fn_list
+    inlet_fn_list(fns0)
+    i_fn_int(i_shl_perform),
+    i_fn_trigger(i_send_result),
+    inlet_fn_list_end
+    inlet_fn_list(fns1)
+    i_fn_int(i_shift_setoffset),
+    inlet_fn_list_end
     
-    p_add_inlet(iobj, "value", fns0, NULL);
-    p_add_inlet(iobj, "ratio", fns1, NULL);
-    p_add_outlet(iobj, "result");
+    add_inlet(iobj, "value", fns0, NULL);
+    add_inlet(iobj, "ratio", fns1, NULL);
+    add_outlet(iobj, "result");
     return iobj;
 }
 static void* i_shr_create(int argc, char **argv)
@@ -197,17 +197,17 @@ static void* i_shr_create(int argc, char **argv)
     } else {
         iobj->offset = 0;
     }
-    p_begin_inlet_fn_list(fns0)
-    p_inlet_fn_int(i_shr_perform),
-    p_inlet_fn_trigger(i_send_result),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fns1)
-    p_inlet_fn_int(i_shift_setoffset),
-    p_end_inlet_fn_list
+    inlet_fn_list(fns0)
+    i_fn_int(i_shr_perform),
+    i_fn_trigger(i_send_result),
+    inlet_fn_list_end
+    inlet_fn_list(fns1)
+    i_fn_int(i_shift_setoffset),
+    inlet_fn_list_end
     
-    p_add_inlet(iobj, "value", fns0, NULL);
-    p_add_inlet(iobj, "ratio", fns1, NULL);
-    p_add_outlet(iobj, "result");
+    add_inlet(iobj, "value", fns0, NULL);
+    add_inlet(iobj, "ratio", fns1, NULL);
+    add_outlet(iobj, "result");
     return iobj;
 }
 
@@ -215,14 +215,14 @@ static void i_compare_equals(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(iobj->offset==val) {
-		p_outlet_bang(iobj,0);
+		o_bang(iobj,0);
 	}
 }
 static void i_compare_not_equal(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(iobj->offset!=val) {
-		p_outlet_bang(iobj,0);
+		o_bang(iobj,0);
 	}
 }
 
@@ -230,7 +230,7 @@ static void i_compare_less_than(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(val < iobj->offset) {
-		p_outlet_bang(iobj,0);
+		o_bang(iobj,0);
 	}
 }
 
@@ -238,14 +238,14 @@ static void i_compare_greater_than(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(val>iobj->offset) {
-		p_outlet_bang(iobj,0);
+		o_bang(iobj,0);
 	}
 }
 static void i_compare_less_than_or_equal(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(val <= iobj->offset) {
-		p_outlet_bang(iobj,0);
+		o_bang(iobj,0);
 	}
 }
 
@@ -253,53 +253,53 @@ static void i_compare_greater_than_or_equal(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(val>=iobj->offset) {
-		p_outlet_bang(iobj,0);
+		o_bang(iobj,0);
 	}
 }
 
 static void* i_compare_create(int argc, char** argv)
 {
 	i_offset_obj *obj = p_new(i_compare_class);
-	p_add_outlet(obj,"true");
+	add_outlet(obj,"true");
 	
-	p_begin_inlet_fn_list(fns_equal)
-    p_inlet_fn_int(i_compare_equals),
-    p_end_inlet_fn_list
+	inlet_fn_list(fns_equal)
+    i_fn_int(i_compare_equals),
+    inlet_fn_list_end
     
-	p_begin_inlet_fn_list(fns_not_equal)
-    p_inlet_fn_int(i_compare_not_equal),
-    p_end_inlet_fn_list
+	inlet_fn_list(fns_not_equal)
+    i_fn_int(i_compare_not_equal),
+    inlet_fn_list_end
     
-	p_begin_inlet_fn_list(fns_lt)
-    p_inlet_fn_int(i_compare_less_than),
-    p_end_inlet_fn_list
+	inlet_fn_list(fns_lt)
+    i_fn_int(i_compare_less_than),
+    inlet_fn_list_end
     
-	p_begin_inlet_fn_list(fns_lte)
-    p_inlet_fn_int(i_compare_less_than_or_equal),
-    p_end_inlet_fn_list
+	inlet_fn_list(fns_lte)
+    i_fn_int(i_compare_less_than_or_equal),
+    inlet_fn_list_end
     
-	p_begin_inlet_fn_list(fns_gt)
-    p_inlet_fn_int(i_compare_greater_than),
-    p_end_inlet_fn_list
+	inlet_fn_list(fns_gt)
+    i_fn_int(i_compare_greater_than),
+    inlet_fn_list_end
     
-	p_begin_inlet_fn_list(fns_gte)
-    p_inlet_fn_int(i_compare_greater_than_or_equal),
-    p_end_inlet_fn_list
+	inlet_fn_list(fns_gte)
+    i_fn_int(i_compare_greater_than_or_equal),
+    inlet_fn_list_end
                 
 	if (strcmp(argv[0],"=")==0) {
-		p_add_inlet(obj, "a", fns_equal, NULL);
+		add_inlet(obj, "a", fns_equal, NULL);
 	} else if (strcmp(argv[0],"!=")==0) {
-		p_add_inlet(obj, "a", fns_not_equal, NULL);
+		add_inlet(obj, "a", fns_not_equal, NULL);
 	} else 
 	if (strcmp(argv[0],"<")==0) {
-		p_add_inlet(obj, "a", fns_lt, NULL);
+		add_inlet(obj, "a", fns_lt, NULL);
 	} else 
 	if (strcmp(argv[0],"<=")==0) {
-		p_add_inlet(obj, "a", fns_lte, NULL);
+		add_inlet(obj, "a", fns_lte, NULL);
 	} else if (strcmp(argv[0],">")==0) {
-		p_add_inlet(obj, "a", fns_gt, NULL);
+		add_inlet(obj, "a", fns_gt, NULL);
 	} else if (strcmp(argv[0],"=")==0) {
-		p_add_inlet(obj, "a", fns_gte, NULL);
+		add_inlet(obj, "a", fns_gte, NULL);
 	}
 
 	return obj;
@@ -335,7 +335,7 @@ typedef struct f_offset_obj {
 
 static void f_send_result(void *obj, void* idata)
 {
-    p_outlet_send_float(obj, 0, ((f_offset_obj *)obj)->result);
+    o_float(obj, 0, ((f_offset_obj *)obj)->result);
 }
 
 static void f_set_offset(void *obj, float val, void* idata)
@@ -347,21 +347,21 @@ static void f_add_perform(void *obj, float val, void* idata)
 {
     f_offset_obj *fobj = obj;
     fobj->result = val + fobj->offset;
-    p_outlet_send_float(fobj, 0, fobj->result);
+    o_float(fobj, 0, fobj->result);
 }
 
 static void f_sub_perform(void *obj, float val, void* idata)
 {
     f_offset_obj *fobj = obj;
     fobj->result = val - fobj->offset;
-    p_outlet_send_float(fobj, 0, fobj->result);
+    o_float(fobj, 0, fobj->result);
 }
 
 static void f_mul_perform(void *obj, float val, void* idata)
 {
     f_offset_obj *fobj = obj;
     fobj->result = val * fobj->offset;
-    p_outlet_send_float(fobj, 0, fobj->result);
+    o_float(fobj, 0, fobj->result);
 }
 
 static void f_div_setratio(void *obj, float divisor, void* idata)
@@ -371,7 +371,7 @@ static void f_div_setratio(void *obj, float divisor, void* idata)
 
 static void f_sqrt_perform(void *obj, float val, void *idata)
 {
-    p_outlet_send_float(obj, 0, sqrtf(val));
+    o_float(obj, 0, sqrtf(val));
 }
 
 static void f_isgt_perform(void *obj, float val, void *idata)
@@ -379,7 +379,7 @@ static void f_isgt_perform(void *obj, float val, void *idata)
     f_offset_obj *fobj;
     fobj->result = val;
     if (val > fobj->offset) {
-        p_outlet_bang(fobj, 0);
+        o_bang(fobj, 0);
     }
 }
 
@@ -388,7 +388,7 @@ static void f_islt_perform(void *obj, float val, void *idata)
     f_offset_obj *fobj;
     fobj->result = val;
     if (val < fobj->offset) {
-        p_outlet_bang(fobj, 0);
+        o_bang(fobj, 0);
     }
 }
 
@@ -396,9 +396,9 @@ static void f_moses_send(void *obj, void *idata)
 {
     f_offset_obj *fobj = obj;
     if (fobj->result < fobj->offset) {
-        p_outlet_send_float(fobj, 0, fobj->result);
+        o_float(fobj, 0, fobj->result);
     } else {
-        p_outlet_send_float(fobj, 1, fobj->result);
+        o_float(fobj, 1, fobj->result);
     }
 }
 static void f_moses_perform(void *obj, float val, void *idata)
@@ -406,9 +406,9 @@ static void f_moses_perform(void *obj, float val, void *idata)
     f_offset_obj *fobj = obj;
     fobj->result = val;
     if (val < fobj->offset) {
-        p_outlet_send_float(obj, 0, val);
+        o_float(obj, 0, val);
     } else {
-        p_outlet_send_float(obj, 1, val);
+        o_float(obj, 1, val);
     }
 }
 
@@ -421,17 +421,17 @@ static void* f_add_create(int argc, char **argv)
     } else {
         obj->offset = 0.0;
     }
-    p_begin_inlet_fn_list(fn0)
-        p_inlet_fn_float(f_add_perform),
-        p_inlet_fn_trigger(f_send_result),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fn1)
-        p_inlet_fn_float(f_set_offset),
-    p_end_inlet_fn_list
+    inlet_fn_list(fn0)
+        i_fn_float(f_add_perform),
+        i_fn_trigger(f_send_result),
+    inlet_fn_list_end
+    inlet_fn_list(fn1)
+        i_fn_float(f_set_offset),
+    inlet_fn_list_end
 
-    p_add_inlet(obj, "in", fn0, NULL);
-    p_add_inlet(obj, "offset", fn1, NULL);
-    p_add_outlet(obj, "out");
+    add_inlet(obj, "in", fn0, NULL);
+    add_inlet(obj, "offset", fn1, NULL);
+    add_outlet(obj, "out");
     return obj;
 }
 
@@ -443,17 +443,17 @@ static void* f_sub_create(int argc, char **argv)
     } else {
         obj->offset = 0.0;
     }
-    p_begin_inlet_fn_list(fn0)
-    p_inlet_fn_float(f_sub_perform),
-    p_inlet_fn_trigger(f_send_result),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fn1)
-    p_inlet_fn_float(f_set_offset),
-    p_end_inlet_fn_list
+    inlet_fn_list(fn0)
+    i_fn_float(f_sub_perform),
+    i_fn_trigger(f_send_result),
+    inlet_fn_list_end
+    inlet_fn_list(fn1)
+    i_fn_float(f_set_offset),
+    inlet_fn_list_end
     
-    p_add_inlet(obj, "in", fn0, NULL);
-    p_add_inlet(obj, "offset", fn1, NULL);
-    p_add_outlet(obj, "out");
+    add_inlet(obj, "in", fn0, NULL);
+    add_inlet(obj, "offset", fn1, NULL);
+    add_outlet(obj, "out");
     return obj;
 }
 
@@ -465,17 +465,17 @@ static void* f_mul_create(int argc, char **argv)
     } else {
         obj->offset = 0.0;
     }
-    p_begin_inlet_fn_list(fn0)
-    p_inlet_fn_float(f_mul_perform),
-    p_inlet_fn_trigger(f_send_result),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fn1)
-    p_inlet_fn_float(f_set_offset),
-    p_end_inlet_fn_list
+    inlet_fn_list(fn0)
+    i_fn_float(f_mul_perform),
+    i_fn_trigger(f_send_result),
+    inlet_fn_list_end
+    inlet_fn_list(fn1)
+    i_fn_float(f_set_offset),
+    inlet_fn_list_end
     
-    p_add_inlet(obj, "in", fn0, NULL);
-    p_add_inlet(obj, "factor", fn1, NULL);
-    p_add_outlet(obj, "out");
+    add_inlet(obj, "in", fn0, NULL);
+    add_inlet(obj, "factor", fn1, NULL);
+    add_outlet(obj, "out");
     return obj;
 }
 
@@ -487,17 +487,15 @@ static void* f_div_create(int argc, char **argv)
     } else {
         obj->offset = 0.0;
     }
-    p_begin_inlet_fn_list(fn0)
-    p_inlet_fn_float(f_mul_perform),
-    p_inlet_fn_trigger(f_send_result),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fn1)
-    p_inlet_fn_float(f_div_setratio),
-    p_end_inlet_fn_list
+    inlet_fn_list(fn0)
+    i_fn_float(f_mul_perform),
+    i_fn_trigger(f_send_result),
+    inlet_fn_list_end
+    inlet_float_fn(fn1,f_div_setratio);
     
-    p_add_inlet(obj, "in", fn0, NULL);
-    p_add_inlet(obj, "ratio", fn1, NULL);
-    p_add_outlet(obj, "out");
+    add_inlet(obj, "in", fn0, NULL);
+    add_inlet(obj, "ratio", fn1, NULL);
+    add_outlet(obj, "out");
     return obj;
 }
 
@@ -509,22 +507,22 @@ static void* f_cmp_create(int argc, char **argv)
     } else {
         obj->offset = 0.0;
     }
-    p_begin_inlet_fn_list(fngt)
-        p_inlet_fn_float(f_isgt_perform),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fnlt)
-        p_inlet_fn_float(f_islt_perform),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fn1)
-        p_inlet_fn_float(f_set_offset),
-    p_end_inlet_fn_list
+    inlet_fn_list(fngt)
+        i_fn_float(f_isgt_perform),
+        i_fn_trigger(f_send_result),
+    inlet_fn_list_end
+    inlet_fn_list(fnlt)
+        i_fn_float(f_islt_perform),
+        i_fn_trigger(f_send_result),
+    inlet_fn_list_end
+    inlet_float_fn(fn1,f_set_offset);
     if (strcmp("<", argv[0])==0) {
-        p_add_inlet(obj, "in", fnlt, NULL);
+        add_inlet(obj, "in", fnlt, NULL);
     } else {
-        p_add_inlet(obj, "in", fngt, NULL);
+        add_inlet(obj, "in", fngt, NULL);
     }
-    p_add_inlet(obj, "compare", fn1, NULL);
-    p_add_outlet(obj, "true");
+    add_inlet(obj, "compare", fn1, NULL);
+    add_outlet(obj, "true");
     return obj;
 }
 
@@ -536,17 +534,13 @@ static void *f_moses_create(int argc, char **argv)
     } else {
         obj->offset = 0.0;
     }
-    p_begin_inlet_fn_list(fn0)
-        p_inlet_fn_float(f_moses_perform),
-    p_end_inlet_fn_list
-    p_begin_inlet_fn_list(fn1)
-        p_inlet_fn_float(f_set_offset),
-    p_end_inlet_fn_list
+    inlet_float_fn(fn0, f_moses_perform);
+    inlet_float_fn(fn1, f_set_offset);
     
-    p_add_inlet(obj, "in", fn0, NULL);
-    p_add_inlet(obj, "compare", fn1, NULL);
-    p_add_outlet(obj, "less-than");
-    p_add_outlet(obj, "greater-than");
+    add_inlet(obj, "in", fn0, NULL);
+    add_inlet(obj, "compare", fn1, NULL);
+    add_outlet(obj, "less-than");
+    add_outlet(obj, "greater-than");
     return obj;
 }
 

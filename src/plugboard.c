@@ -393,8 +393,8 @@ t_list p_list_cons(int16_t a_type, void* a_data, int16_t b_type, void* b_data)
 }
 
 
-static void p_default_destructor(t_plugobj *_) {}
-static void p_default_redraw(t_plugobj *_, t_any ___, void *__) {}
+static void p_default_destroy(void *_) {}
+static void p_default_redraw(void *_, t_any ___, void *__) {}
 
 
 /*
@@ -424,7 +424,7 @@ t_plugclass* p_create_plugclass(t_sym symbol, size_t object_size,
     }
     pc->classname = symbol;
     pc->creator = creator;
-    pc->destructor = p_default_destructor;
+    pc->destructor = p_default_destroy;
     if (destructor) {
         pc->destructor = destructor;
     }

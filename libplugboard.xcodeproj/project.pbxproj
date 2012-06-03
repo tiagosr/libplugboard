@@ -106,8 +106,8 @@
 		B18B4515156066DC00F22DD3 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				B18528A915717C09009D3DA8 /* plugboard-lib-std-string.h */,
 				B18528AC15717C33009D3DA8 /* plugboard-lib-std-string.c */,
+				B18528A915717C09009D3DA8 /* plugboard-lib-std-string.h */,
 				B18B453015606BA300F22DD3 /* plugboard-lib-std-basicarith.c */,
 				B18B453115606BA300F22DD3 /* plugboard-lib-std-basicarith.h */,
 				B18B453215606BA300F22DD3 /* plugboard-lib-std-basictypes.c */,

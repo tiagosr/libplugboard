@@ -35,16 +35,16 @@ static void int_set(void *obj, t_any data, void*idata) {
             iobj->data = ival;
         }
     }
-    p_outlet_send_int(obj, 0, iobj->data);
+    o_int(obj, 0, iobj->data);
 }
 static void *i_class_new(int argc, char **argv) {
     int_obj *obj = p_new(int_class);
     obj->data = 0;
-    p_begin_inlet_fn_list(fns)
-    p_inlet_fn_any(int_set),
-    p_end_inlet_fn_list
-    p_add_inlet(obj, "in", fns, NULL);
-    p_add_outlet(obj, "out");
+    inlet_fn_list(fns)
+    i_fn_any(int_set),
+    inlet_fn_list_end
+    add_inlet(obj, "in", fns, NULL);
+    add_outlet(obj, "out");
     return obj;
 }
 
@@ -66,16 +66,16 @@ static void f_set(void *obj, t_any data, void *idata) {
             fobj->data = ival;
         }
     }
-    p_outlet_send_float(obj, 0, fobj->data);
+    o_float(obj, 0, fobj->data);
 }
 static void *f_class_new(int argc, char **argv) {
     float_obj *obj = p_new(int_class);
     obj->data = 0;
-    p_begin_inlet_fn_list(fns)
-    p_inlet_fn_any(f_set),
-    p_end_inlet_fn_list
-    p_add_inlet(obj, "in", fns, NULL);
-    p_add_outlet(obj, "out");
+    inlet_fn_list(fns)
+    i_fn_any(f_set),
+    inlet_fn_list_end
+    add_inlet(obj, "in", fns, NULL);
+    add_outlet(obj, "out");
     return obj;
 }
 
@@ -99,7 +99,7 @@ static void s_set(void *obj, t_any data, void*idata) {
         default:
             break;
 	}
-    p_outlet_send_string(obj, 0, ((string_obj *)obj)->string);
+    o_string(obj, 0, ((string_obj *)obj)->string);
 }
 static void* s_create(int argc, char** argv) {
 	string_obj* obj = p_new(string_class);
@@ -108,11 +108,11 @@ static void* s_create(int argc, char** argv) {
 	} else {
 		obj->string = strdup("");
 	}
-	p_begin_inlet_fn_list(fns)
-    p_inlet_fn_any(s_set),
-    p_end_inlet_fn_list
-    p_add_inlet(obj, "in", fns, NULL);
-	p_add_outlet(obj, "out");
+	inlet_fn_list(fns)
+    i_fn_any(s_set),
+    inlet_fn_list_end
+    add_inlet(obj, "in", fns, NULL);
+	add_outlet(obj, "out");
 	return obj;
 }
 
@@ -133,17 +133,17 @@ static void list_set(void *obj, t_any any, void*idata) {
         lobj->list.car_type = any.type;
         lobj->list.car = any.something;
     }
-    p_outlet_send_list(lobj, 0, lobj->list);
+    o_list(lobj, 0, lobj->list);
 }
 
 static void* list_create(int argc, const char **argv) {
     list_obj *obj = p_new(list_class);
     
-    p_begin_inlet_fn_list(fns)
-    p_inlet_fn_any(list_set),
-    p_end_inlet_fn_list
-    p_add_inlet(obj, "in", fns, NULL);
-    p_add_outlet(obj, "out");
+    inlet_fn_list(fns)
+    i_fn_any(list_set),
+    inlet_fn_list_end
+    add_inlet(obj, "in", fns, NULL);
+    add_outlet(obj, "out");
     return obj;
 }
 
@@ -158,28 +158,28 @@ static void any_set(void *obj, t_any any, void*idata) {
 	if (any.type != t_type_trigger) {
 		a->any = any;
 	}
-	p_outlet_send_any(obj, 0, a->any);
+	o_any(obj, 0, a->any);
 }
 static void* any_create(int argc, const char **argv) {
 	any_obj* obj = p_new(any_class);
 	obj->any = (t_any){t_type_trigger, 0};
-	p_begin_inlet_fn_list(fns)
-    p_inlet_fn_any(any_set),
-    p_end_inlet_fn_list
-    p_add_inlet(obj, "in", fns, NULL);
-	p_add_outlet(obj, "out");
+	inlet_fn_list(fns)
+    i_fn_any(any_set),
+    inlet_fn_list_end
+    add_inlet(obj, "in", fns, NULL);
+	add_outlet(obj, "out");
 	return obj;
 }
 
 
 void p_std_basictypes_setup(void) {
     int_class = p_create_plugclass(gen_sym("int"), sizeof(int_obj),
-                                   i_class_new,p_default_destruct,0,0);
+                                   i_class_new,p_default_destroy,0,0);
     p_create_class_alias(int_class, gen_sym("i"));
     float_class = p_create_plugclass(gen_sym("float"), sizeof(float_obj),
-                                     f_class_new,p_default_destruct,0,0);
+                                     f_class_new,p_default_destroy,0,0);
     p_create_class_alias(int_class, gen_sym("f"));
     string_class = p_create_plugclass(gen_sym("string"), sizeof(string_obj),
-                                      s_create,p_default_destruct,0,0);
+                                      s_create,p_default_destroy,0,0);
     p_create_class_alias(string_class, gen_sym("s"));
 }

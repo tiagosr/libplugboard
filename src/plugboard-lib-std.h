@@ -17,7 +17,7 @@
 
 void p_std_setup(void);
 
-void p_default_destruct(t_plugobj*);
+void p_default_destroy(void*);
 
 
 #endif

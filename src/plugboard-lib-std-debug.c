@@ -67,22 +67,22 @@ static void print_perform(void *obj, t_any data, void*idata)
 }
 
 static void*print_create(int argc, char **argv) {
-    print_data_obj*obj = p_new(print_class);
+    print_data_obj *obj = p_new(print_class);
     if (argc>1) {
         obj->description = strdup(argv[1]);
     } else {
         obj->description = NULL;
     }
-    p_begin_inlet_fn_list(fns)
-    p_inlet_fn_any(print_perform),
-    p_end_inlet_fn_list
-    p_add_inlet(obj, "in", fns, NULL);
+    inlet_fn_list(fns)
+    i_fn_any(print_perform),
+    inlet_fn_list_end
+    add_inlet(obj, "in", fns, NULL);
     return obj;
 }
 
 
 void p_std_debug_setup(void) {
     print_class = p_create_plugclass(gen_sym("print"), sizeof(print_data_obj),
-                                     print_create, p_default_destruct, 0, 0);
+                                     print_create, p_default_destroy, 0, 0);
     p_create_class_alias(print_class, gen_sym("p"));
 }

@@ -28,4 +28,4 @@ void p_std_setup(void)
     p_std_string_setup();
 }
 
-void p_default_destruct(t_plugobj*unused) {}
+void p_default_destroy(void*unused) {}
