@@ -34,7 +34,7 @@ static void print_perform(void *obj, t_any data, void*idata)
     
     if (internal_print_hook) {
         char *part_message;
-        size_t partsize = 0;
+        //size_t partsize = 0;
         switch (data.type) {
             case t_type_int:
                 asprintf(&part_message, "%d",data.i_data);

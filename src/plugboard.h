@@ -87,31 +87,38 @@ struct t_inlet_fn {
         t_inlet_list_fn inlet_list;
         t_inlet_any_fn inlet_any;
     };
-    
+    t_inlet_fn *next;
 };
 struct t_inlet {
     t_sym name;
     t_inlet_fn **fns;
+    t_inlet_fn *head, *tail;
+    t_inlet *prev, *next;
     void *data;
 };
 
 struct t_outlet_connection {
     t_plugobj *target;
-    t_inlet inlet;
+    t_inlet* inlet;
+    t_outlet_connection *prev, *next;
 };
 
 struct t_outlet {
     t_sym name;
     // null-terminated list of connection pointers
-    t_outlet_connection **connections;
+    //t_outlet_connection **connections;
+    t_outlet_connection *head, *tail;
+    t_outlet *prev, *next;
 };
 
 struct t_plugobj {
     size_t inlet_count, outlet_count;
     char *obj_spec;
     t_plugclass *prototype;
-    t_inlet **inlets;
-    t_outlet **outlets;
+    //t_inlet **inlets;
+    t_inlet *in_head, *in_tail;
+    //t_outlet **outlets;
+    t_outlet *out_head, *out_tail;
     void *drawdata;
 };
 
@@ -137,13 +144,12 @@ t_sym find_sym(const char *s);
  */
 t_args p_separate_args(char *s);
 
-void p_outlet_bang(t_plugobj *obj,size_t outlet);
-void p_outlet_send_int(t_plugobj *obj,size_t outlet, int data);
-void p_outlet_send_float(t_plugobj *obj,size_t outlet, float data);
-//void p_outlet_send_sym(t_plugobj *obj,size_t outlet, t_sym data);
-void p_outlet_send_string(t_plugobj *obj,size_t outlet, const char* data);
-void p_outlet_send_list(t_plugobj *obj,size_t outlet, t_list data);
-void p_outlet_send_any(t_plugobj *obj,size_t outlet, t_any any);
+void p_outlet_bang(t_outlet *outlet);
+void p_outlet_send_int(t_outlet *outlet, int data);
+void p_outlet_send_float(t_outlet *outlet, float data);
+void p_outlet_send_string(t_outlet *outlet, const char* data);
+void p_outlet_send_list(t_outlet *outlet, t_list data);
+void p_outlet_send_any(t_outlet *outlet, t_any any);
 
 void p_send_redraw(t_plugobj *obj, t_any data);
 
@@ -164,13 +170,14 @@ void p_create_class_alias(t_plugclass *ref, t_sym alias);
  */
 void* p_new(t_plugclass *spec);
 void p_add_inlet(t_plugobj *obj, t_sym name, t_inlet_fn *fns, void *idata);
-void p_add_outlet(t_plugobj *obj, t_sym name);
+t_outlet *p_add_outlet(t_plugobj *obj, t_sym name);
 
-t_plugobj* p_create_plugobj(const char* spec);
+t_plugobj* p_create_plugobj(const char* spec, void* drawdata);
 int p_connect(t_plugobj *from, int outlet, t_plugobj *to, int inlet);
 void p_destroy(t_plugobj* obj);
 
 void p_bang(t_plugobj *obj, int inlet);
+void p_setdrawdata(t_plugobj *obj, void *drawdata);
 
 void p_setup(void);
 

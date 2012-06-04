@@ -21,6 +21,7 @@ static t_plugclass *int_class;
 typedef struct int_obj {
     t_plugobj base;
     int data;
+    t_outlet *out;
 } int_obj;
 
 static void int_set(void *obj, t_any data, void*idata) {
@@ -35,7 +36,7 @@ static void int_set(void *obj, t_any data, void*idata) {
             iobj->data = ival;
         }
     }
-    o_int(obj, 0, iobj->data);
+    o_int(iobj->out, iobj->data);
 }
 static void *i_class_new(int argc, char **argv) {
     int_obj *obj = p_new(int_class);
@@ -44,7 +45,7 @@ static void *i_class_new(int argc, char **argv) {
     i_fn_any(int_set),
     inlet_fn_list_end
     add_inlet(obj, "in", fns, NULL);
-    add_outlet(obj, "out");
+    obj->out = add_outlet(obj, "out");
     return obj;
 }
 
@@ -53,7 +54,9 @@ static t_plugclass *float_class;
 typedef struct {
     t_plugobj base;
     float data;
+    t_outlet *out;
 } float_obj;
+
 static void f_set(void *obj, t_any data, void *idata) {
     float_obj *fobj = (float_obj *)obj;
     if (data.type == t_type_int) {
@@ -66,7 +69,7 @@ static void f_set(void *obj, t_any data, void *idata) {
             fobj->data = ival;
         }
     }
-    o_float(obj, 0, fobj->data);
+    o_float(fobj->out, fobj->data);
 }
 static void *f_class_new(int argc, char **argv) {
     float_obj *obj = p_new(int_class);
@@ -75,7 +78,7 @@ static void *f_class_new(int argc, char **argv) {
     i_fn_any(f_set),
     inlet_fn_list_end
     add_inlet(obj, "in", fns, NULL);
-    add_outlet(obj, "out");
+    obj->out = add_outlet(obj, "out");
     return obj;
 }
 
@@ -84,6 +87,7 @@ static t_plugclass *string_class;
 typedef struct string_obj {
     t_plugobj base;
     char *string;
+    t_outlet *out;
 } string_obj;
 static void s_set(void *obj, t_any data, void*idata) {
     char *tmp = NULL;
@@ -99,7 +103,7 @@ static void s_set(void *obj, t_any data, void*idata) {
         default:
             break;
 	}
-    o_string(obj, 0, ((string_obj *)obj)->string);
+    o_string(((string_obj *)obj)->out, ((string_obj *)obj)->string);
 }
 static void* s_create(int argc, char** argv) {
 	string_obj* obj = p_new(string_class);
@@ -112,7 +116,7 @@ static void* s_create(int argc, char** argv) {
     i_fn_any(s_set),
     inlet_fn_list_end
     add_inlet(obj, "in", fns, NULL);
-	add_outlet(obj, "out");
+	obj->out = add_outlet(obj, "out");
 	return obj;
 }
 
@@ -121,6 +125,7 @@ static t_plugclass *list_class;
 typedef struct list_obj {
     t_plugobj base;
     t_list list;
+    t_outlet *out;
 } list_obj;
 
 static void list_set(void *obj, t_any any, void*idata) {
@@ -133,7 +138,7 @@ static void list_set(void *obj, t_any any, void*idata) {
         lobj->list.car_type = any.type;
         lobj->list.car = any.something;
     }
-    o_list(lobj, 0, lobj->list);
+    o_list(lobj->out, lobj->list);
 }
 
 static void* list_create(int argc, const char **argv) {
@@ -143,7 +148,7 @@ static void* list_create(int argc, const char **argv) {
     i_fn_any(list_set),
     inlet_fn_list_end
     add_inlet(obj, "in", fns, NULL);
-    add_outlet(obj, "out");
+    obj->out = add_outlet(obj, "out");
     return obj;
 }
 
@@ -152,13 +157,14 @@ static t_plugclass *any_class;
 typedef struct any_obj {
 	t_plugobj base;
 	t_any any;
+    t_outlet *out;
 } any_obj;
 static void any_set(void *obj, t_any any, void*idata) {
 	any_obj *a = (any_obj*)obj;
 	if (any.type != t_type_trigger) {
 		a->any = any;
 	}
-	o_any(obj, 0, a->any);
+	o_any(a->out, a->any);
 }
 static void* any_create(int argc, const char **argv) {
 	any_obj* obj = p_new(any_class);
@@ -167,7 +173,7 @@ static void* any_create(int argc, const char **argv) {
     i_fn_any(any_set),
     inlet_fn_list_end
     add_inlet(obj, "in", fns, NULL);
-	add_outlet(obj, "out");
+	obj->out = add_outlet(obj, "out");
 	return obj;
 }
 

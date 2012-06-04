@@ -116,200 +116,199 @@ static void send_float_as_any(void*target, t_inlet_fn *in, float data, void * tg
  */
 
 
-void p_outlet_send_int(t_plugobj *obj, size_t outlet, int data)
+void p_outlet_send_int(t_outlet *outlet, int data)
 {
-    t_outlet_connection **current = obj->outlets[outlet]->connections;
-    while (current[0]) {
+    t_outlet_connection *current = outlet->head;
+    while (current) {
         /* try sending to the given inlet as one of the basic types,
          * in the following order:
          * int, float, string, any, trigger
          * once a suitable inlet function is found, send and proceed
          * to the next inlet
          */
-        t_inlet_fn **inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_int) {
-                inlet[0]->inlet_int(current[0]->target,data,current[0]->inlet.data);
+        t_inlet_fn *inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_int) {
+                inlet->inlet_int(current->target,data,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_float) {
-                inlet[0]->inlet_float(current[0]->target,data,current[0]->inlet.data);
+        inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_float) {
+                inlet->inlet_float(current->target,data,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_any) {
-                send_int_as_any(current[0]->target,inlet[0],data,current[0]->inlet.data);
+        inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_any) {
+                send_int_as_any(current->target,inlet,data,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_string) {
-                send_int_as_string(current[0]->target,inlet[0],data,current[0]->inlet.data);
+        inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_string) {
+                send_int_as_string(current->target,inlet,data,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_trigger) {
-                inlet[0]->inlet_trigger(current[0]->target,current[0]->inlet.data);
+        inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_trigger) {
+                inlet->inlet_trigger(current->target,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
     sent:
-        current++;
+        current=current->next;
     }
 }
 
-void p_outlet_send_float(t_plugobj *obj, size_t outlet, float data)
+void p_outlet_send_float(t_outlet *outlet, float data)
 {
-    t_outlet_connection **current = obj->outlets[outlet]->connections;
-    while (current[0]) {
-        t_inlet_fn **inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_float) {
-                inlet[0]->inlet_float(current[0]->target,data,current[0]->inlet.data);
+    t_outlet_connection *current = outlet->head;
+    while (current) {
+        t_inlet_fn *inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_float) {
+                inlet->inlet_float(current->target,data,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_any) {
-                send_float_as_any(current[0]->target,inlet[0],data,current[0]->inlet.data);
+        inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_any) {
+                send_float_as_any(current->target,inlet,data,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_string) {
-                send_float_as_string(current[0]->target,inlet[0],data,current[0]->inlet.data);
+        inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_string) {
+                send_float_as_string(current->target,inlet,data,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_int) {
-                inlet[0]->inlet_int(current[0]->target,data,current[0]->inlet.data);
+        inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_int) {
+                inlet->inlet_int(current->target,data,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_trigger) {
-                inlet[0]->inlet_trigger(current[0]->target,current[0]->inlet.data);
+        inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_trigger) {
+                inlet->inlet_trigger(current->target,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
     sent:
-        current++;
+        current=current->next;
     }
 }
 
 
-void p_outlet_send_string(t_plugobj *obj, size_t outlet, const char* string)
+void p_outlet_send_string(t_outlet *outlet, const char* string)
 {
-    t_outlet_connection **current = obj->outlets[outlet]->connections;
-    while (current[0]) {
-        t_inlet_fn **inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_string) {
-                inlet[0]->inlet_string(current[0]->target,string,current[0]->inlet.data);
+    t_outlet_connection *current = outlet->head;
+    while (current) {
+        t_inlet_fn *inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_string) {
+                inlet->inlet_string(current->target,string,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
+        inlet = current->inlet->head;
         t_any any_sym = {t_type_sym, .string=(char *)string};
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_any) {
-                inlet[0]->inlet_any(current[0]->target,any_sym,current[0]->inlet.data);
+        while (inlet) {
+            if (inlet->inlet_type == t_type_any) {
+                inlet->inlet_any(current->target,any_sym,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_trigger) {
-                inlet[0]->inlet_trigger(current[0]->target,current[0]->inlet.data);
+        inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_trigger) {
+                inlet->inlet_trigger(current->target,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
     sent:
-        current++;
+        current=current->next;
     }
 }
 
-void p_outlet_send_any(t_plugobj *obj, size_t outlet, t_any any)
+void p_outlet_send_any(t_outlet *outlet, t_any any)
 {
-    t_outlet_connection **current = obj->outlets[outlet]->connections;
-    while (current[0]) {
-        t_inlet_fn **inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_string) {
-                inlet[0]->inlet_any(current[0]->target,any,current[0]->inlet.data);
+    t_outlet_connection *current = outlet->head;
+    while (current) {
+        t_inlet_fn *inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_string) {
+                inlet->inlet_any(current->target,any,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (any.type == inlet[0]->inlet_type) {
+        inlet = current->inlet->head;
+        while (inlet) {
+            if (any.type == inlet->inlet_type) {
                 switch (any.type) {
                     case t_type_int:
-                        inlet[0]->inlet_int(current[0]->target,any.i_data,current[0]->inlet.data);
+                        inlet->inlet_int(current->target,any.i_data,current->inlet->data);
                         goto sent;
                     case t_type_float:
-                        inlet[0]->inlet_float(current[0]->target,any.f_data,current[0]->inlet.data);
+                        inlet->inlet_float(current->target,any.f_data,current->inlet->data);
                         goto sent;
                     case t_type_string:
-                        inlet[0]->inlet_string(current[0]->target,any.string,current[0]->inlet.data);
+                        inlet->inlet_string(current->target,any.string,current->inlet->data);
                         goto sent;
                     case t_type_list:
-                        inlet[0]->inlet_list(current[0]->target,*any.list,current[0]->inlet.data);
+                        inlet->inlet_list(current->target,*any.list,current->inlet->data);
                         goto sent;
                 }
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            if (inlet[0]->inlet_type == t_type_trigger) {
-                inlet[0]->inlet_trigger(current[0]->target,current[0]->inlet.data);
+        inlet = current->inlet->head;
+        while (inlet) {
+            if (inlet->inlet_type == t_type_trigger) {
+                inlet->inlet_trigger(current->target,current->inlet->data);
                 goto sent;
             }
-            inlet++;
+            inlet=inlet->next;
         }
     sent:
-        current++;
+        current=current->next;
     }
 }
 
-void p_outlet_bang(t_plugobj *obj, size_t outlet)
+void p_outlet_bang(t_outlet *outlet)
 {
-    t_outlet_connection **current = obj->outlets[outlet]->connections;
-    while (current[0]) {
-        t_inlet_fn **inlet = current[0]->inlet.fns;
-        while (inlet[0]) {
-            switch (inlet[0]->inlet_type) {
+    t_outlet_connection *current = outlet->head;
+    while (current) {
+        t_inlet_fn *inlet = current->inlet->head;
+        while (inlet) {
+            switch (inlet->inlet_type) {
                 case t_type_trigger:
-                    inlet[0]->inlet_trigger(current[0]->target,
-                                                    current[0]->inlet.data);
+                    inlet->inlet_trigger(current->target,current->inlet->data);
                     break;
                 /*
                 case t_type_sym:
@@ -318,16 +317,16 @@ void p_outlet_bang(t_plugobj *obj, size_t outlet)
                     break;
                 */
                 case t_type_string:
-                    inlet[0]->inlet_string(current[0]->target,bang_sym,
-                                                   current[0]->inlet.data);
+                    inlet->inlet_string(current->target,bang_sym,
+                                                   current->inlet->data);
                     break;
                 default:
-                    inlet[0]->inlet_any(current[0]->target,(t_any){t_type_trigger,0},
-                                                current[0]->inlet.data);
+                    inlet->inlet_any(current->target,(t_any){t_type_trigger,0},
+                                                current->inlet->data);
             }
-            inlet++;
+            inlet=inlet->next;
         }
-        current++;
+        current=current->next;
     }
 }
 
@@ -347,6 +346,7 @@ void p_add_inlet(t_plugobj *obj, t_sym name, t_inlet_fn *fns, void *idata)
     t_inlet *inlet = malloc(sizeof(t_inlet));
     inlet->name = name;
     inlet->data = idata;
+    inlet->tail = NULL;
     inlet->fns = malloc(sizeof(t_inlet_fn*)*2);
     while (fns[0].inlet_any) {
         t_inlet_fn *inlet_fn = malloc(sizeof(t_inlet_fn));
@@ -354,13 +354,31 @@ void p_add_inlet(t_plugobj *obj, t_sym name, t_inlet_fn *fns, void *idata)
         inlet_fn->inlet_any = fns[0].inlet_any;
         inlet->fns[fn_len] = inlet_fn;
         fn_len++;
-        inlet->fns = realloc(inlet->fns, sizeof(t_inlet_fn*)+(fn_len+1));
+        if (inlet->tail) {
+            inlet->tail->next = inlet_fn;
+        }
+        inlet_fn->next = NULL;
+        if (inlet->tail) {
+            inlet->tail->next = inlet_fn;
+        } else {
+            inlet->head = inlet_fn;
+        }
+        inlet->tail = inlet_fn;
+        //inlet->fns = realloc(inlet->fns, sizeof(t_inlet_fn*)+(fn_len+1));
         fns++;
     }
-    inlet->fns[fn_len] = 0;
-    obj->inlets = realloc(obj->inlets, sizeof(t_inlet)*(obj->inlet_count+2));
-    obj->inlets[obj->inlet_count] = inlet;
-    obj->inlets[obj->inlet_count+1] = 0;
+    //inlet->fns[fn_len] = 0;
+    inlet->prev = obj->in_tail;
+    inlet->next = NULL;
+    if(obj->in_tail) {
+        obj->in_tail->next = inlet;
+        obj->in_tail = inlet;
+    } else {
+        obj->in_head = obj->in_tail = inlet;
+    }
+    //obj->inlets = realloc(obj->inlets, sizeof(t_inlet)*(obj->inlet_count+2));
+    //obj->inlets[obj->inlet_count] = inlet;
+    //obj->inlets[obj->inlet_count+1] = 0;
     obj->inlet_count++;
 }
 
@@ -369,16 +387,21 @@ void p_add_inlet(t_plugobj *obj, t_sym name, t_inlet_fn *fns, void *idata)
  * outlet creation
  */
 
-void p_add_outlet(t_plugobj *obj, t_sym name)
+t_outlet * p_add_outlet(t_plugobj *obj, t_sym name)
 {
     t_outlet *outlet = malloc(sizeof(outlet));
     outlet->name = name;
-    outlet->connections = malloc(sizeof(t_outlet_connection*));
-    outlet->connections[0] = NULL;
-    obj->outlets = realloc(obj->outlets, sizeof(t_outlet*)*(obj->outlet_count+2));
-    obj->outlets[obj->outlet_count] = outlet;
-    obj->outlets[obj->outlet_count+1] = 0;
+    outlet->head = outlet->tail = NULL;
+    outlet->prev = obj->out_tail;
+    outlet->next = NULL;
+    if (obj->out_tail) {
+        obj->out_tail->next = outlet;
+        obj->out_tail = outlet;
+    } else {
+        obj->out_head = obj->out_tail = outlet;
+    }
     obj->outlet_count++;
+    return outlet;
 }
 
 
@@ -466,10 +489,9 @@ void* p_new(t_plugclass *class_spec)
 {
     t_plugobj* temp = malloc(class_spec->obj_size);
     temp->prototype = class_spec;
-    temp->inlets = malloc(sizeof(t_inlet_fn *));
-    temp->inlets[0] = NULL;
-    temp->outlets = malloc(sizeof(t_outlet *));
-    temp->outlets[0] = NULL;
+    temp->in_head = temp->in_tail = NULL;
+    temp->out_head = temp->out_tail = NULL;
+    temp->inlet_count = temp->outlet_count = 0;
     return temp;
 }
 
@@ -544,7 +566,7 @@ t_args p_separate_args(char *string)
     return (t_args){argc, argv};
 }
 
-t_plugobj* p_create_plugobj(const char* spec)
+t_plugobj* p_create_plugobj(const char* spec, void* drawdata)
 {
     char *tosplit = strdup(spec);
     t_args args = p_separate_args(tosplit);
@@ -559,6 +581,9 @@ t_plugobj* p_create_plugobj(const char* spec)
     }
     free(args.argv);
     free(tosplit);
+    if (res) {
+        res->drawdata = drawdata;
+    }
     return res;
 }
 
@@ -577,27 +602,34 @@ int p_connect(t_plugobj *from, int outlet, t_plugobj *to, int inlet)
         return 0;
     }
     // test if both inputs and outputs have the given inlet or outlet
-    for (int o=0; o<=outlet; o++) {
-        if (from->outlets[o] == 0) {
+    t_inlet *to_inlet = to->in_head;
+    while (inlet) {
+        if (!to_inlet) {
             return 0;
         }
+        to_inlet = to_inlet->next;
+        inlet--;
     }
-    for (int i=0; i<=inlet; i++) {
-        if (to->inlets[i] == 0) {
+    t_outlet *fr_outlet = from->out_head;
+    while (outlet) {
+        if (!fr_outlet) {
             return 0;
         }
+        fr_outlet = fr_outlet->next;
+        outlet--;
     }
-    t_outlet_connection **connections = from->outlets[outlet]->connections;
+
     t_outlet_connection *connection = malloc(sizeof(t_outlet_connection));
     connection->target = to;
-    connection->inlet = *to->inlets[inlet];
-    size_t conn_size = 0;
-    while (connections[conn_size]) {
-        conn_size++;
+    connection->inlet = to_inlet;
+    connection->prev = fr_outlet->tail;
+    connection->next = NULL;
+    if (fr_outlet->tail) {
+        fr_outlet->tail->next = connection;
+    } else {
+        fr_outlet->head = connection;
     }
-    from->outlets[outlet]->connections = realloc(from->outlets[outlet]->connections, sizeof(t_outlet_connection*)*(conn_size+1));
-    connections[conn_size+1] = 0;
-    connections[conn_size] = connection;
+    fr_outlet->tail = connection;
     return 1;
 }
 
@@ -608,21 +640,36 @@ void p_setup(void)
 
 void p_bang(t_plugobj *obj, int inlet)
 {
-    t_inlet_fn **fns = obj->inlets[inlet]->fns;
-    while (fns[0]) {
-        switch (fns[0]->inlet_type) {
+    
+    t_inlet_fn *fns;
+    t_inlet *inlet_ = obj->in_head;
+    while (inlet--) {
+        if (!inlet_) {
+            return;
+        }
+        inlet_ = inlet_->next;
+    }
+    fns=inlet_->head;
+    while (fns) {
+        switch (fns->inlet_type) {
             case t_type_trigger:
-                fns[0]->inlet_trigger(obj, obj->inlets[inlet]->data);
+                fns->inlet_trigger(obj, inlet_->data);
                 return;
             case t_type_string:
-                fns[0]->inlet_string(obj, bang_sym, obj->inlets[inlet]->data);
+                fns->inlet_string(obj, bang_sym, inlet_->data);
                 return;
             case t_type_any:
-                fns[0]->inlet_any(obj, (t_any){t_type_trigger,0}, obj->inlets[inlet]->data);
+                fns->inlet_any(obj, (t_any){t_type_trigger,0}, inlet_->data);
                 return;
             default:
                 break;
         }
+        fns = fns->next;
     }
+}
+
+void p_setdrawdata(t_plugobj *obj, void *drawdata)
+{
+    obj->drawdata = drawdata;
 }
 

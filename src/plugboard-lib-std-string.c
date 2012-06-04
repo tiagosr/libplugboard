@@ -8,6 +8,7 @@
 
 #include "plugboard-lib-std-string.h"
 #include <string.h>
+#include <stdio.h>
 
 
 // [strlen]
@@ -15,13 +16,14 @@ static t_plugclass *strlen_class;
 typedef struct strlen_struct {
     t_plugobj base;
     int len;
+    t_outlet *out;
 } strlen_struct;
 
 static void strlen_perform(void *obj, const char*str, void *idata)
 {
     strlen_struct *op = obj;
     op->len = strlen(str);
-    o_int(op, 0, op->len);
+    o_int(op->out, op->len);
 }
 
 static void* strlen_create(int argc, char **argv)
@@ -32,7 +34,7 @@ static void* strlen_create(int argc, char **argv)
     i_fn_string(strlen_perform),
     inlet_fn_list_end
     add_inlet(op, "string", fstring, NULL);
-    add_outlet(op, "length");
+    op->out = add_outlet(op, "length");
     return op;
 }
 // end [strlen]
@@ -43,6 +45,7 @@ static t_plugclass *strcat_class;
 typedef struct strcat_struct {
     t_plugobj base;
     char *result, *to_concat;
+    t_outlet *out;
 } strcat_struct;
 
 static void strcat_destroy(void *obj)
@@ -64,7 +67,7 @@ static void strcat_perform(void *obj, const char *str, void *idata)
     op->result = malloc(len+1);
     memcpy(op->result, str, strlen(str)+1);
     op->result = strcat(op->result, op->to_concat);
-    o_string(op, 0, op->result);
+    o_string(op->out, op->result);
 }
 static void strcat_perform_r(void *obj, const char *str, void *idata)
 {
@@ -76,7 +79,7 @@ static void strcat_perform_r(void *obj, const char *str, void *idata)
     op->result = malloc(len+1);
     memcpy(op->result, op->to_concat, strlen(op->to_concat)+1);
     op->result = strcat(op->result, str);
-    o_string(op, 0, op->result);
+    o_string(op->out, op->result);
 }
 
 static void* strcat_create(int argc, char **argv)
@@ -100,7 +103,7 @@ static void* strcat_create(int argc, char **argv)
     else
     { add_inlet(op, "string", frcat, NULL); }
     add_inlet(op, "string", fset, NULL);
-    add_outlet(op, "concatenated");
+    op->out = add_outlet(op, "concatenated");
     return op;
 }
 
@@ -114,6 +117,7 @@ typedef struct char_at_struct {
     t_plugobj base;
     int pos;
     int character;
+    t_outlet *out;
 } char_at_struct;
 
 static void char_at_perform(void *obj, const char *string, void *idata)
@@ -121,9 +125,9 @@ static void char_at_perform(void *obj, const char *string, void *idata)
     char_at_struct *c = obj;
     size_t str_len = strlen(string);
     if (c->pos < str_len && c->pos >= 0) {
-        o_int(obj, 0, c->character = string[c->pos]);
+        o_int(c->out, c->character = string[c->pos]);
     } else if (c->pos < 0 && c->pos >= -str_len) {
-        o_int(obj, 0, c->character = string[str_len - c->pos]);
+        o_int(c->out, c->character = string[str_len - c->pos]);
     }
 }
 
@@ -145,7 +149,7 @@ static void* char_at_create(int argc, char**argv)
     inlet_fn_list_end
     add_inlet(obj, "string", fn, NULL);
     add_inlet(obj, "position", fn2, NULL);
-    add_outlet(obj, "character");
+    obj->out = add_outlet(obj, "character");
     return obj;
 }
 
@@ -158,6 +162,7 @@ typedef struct substr_struct {
     t_plugobj base;
     char *part;
     int from, to;
+    t_outlet *out;
 } substr_struct;
 
 static void substr_perform(void *vobj, const char* string, void *idata)
@@ -194,7 +199,7 @@ static void substr_perform(void *vobj, const char* string, void *idata)
         obj->part = malloc(len+1);
         memcpy(obj->part, string+start, len);
     }
-    o_string(obj, 0, obj->part);
+    o_string(obj->out, obj->part);
 }
 
 static i_setter(substr_set_from, int, substr_struct, from);
@@ -224,7 +229,7 @@ static void* substr_create(int argc, char** argv) {
     add_inlet(obj, "from", fnsetfrom, NULL);
     add_inlet(obj, "to", fnsetto, NULL);
     
-    add_outlet(obj, "substring");
+    obj->out = add_outlet(obj, "substring");
     return obj;
 }
 
@@ -235,6 +240,40 @@ static void substr_destroy(void *obj) {
 
 // end [substr]
 
+// [itoa]
+static t_plugclass *itoa_class;
+typedef struct itoa_obj {
+    t_plugobj base;
+    char *result;
+    t_outlet *out;
+} itoa_obj;
+
+static void itoa_perform(void *obj, int num, void *idata)
+{
+    itoa_obj *iobj = obj;
+    free(iobj->result);
+    iobj->result = NULL;
+    asprintf(&iobj->result, "%d",num);
+    o_string(iobj->out, iobj->result);
+}
+
+static void* itoa_create(int argc, char **argv)
+{
+    itoa_obj *obj = p_new(itoa_class);
+    obj->result = strdup("");
+    inlet_int_fn(fn, itoa_perform);
+    add_inlet(obj, "int", fn, NULL);
+    obj->out = add_outlet(obj, "string");
+    return obj;
+}
+
+static void itoa_destroy(void *obj)
+{
+    free(((itoa_obj *)obj)->result);
+}
+
+// end [itoa]
+
 
 
 
@@ -242,11 +281,20 @@ void p_std_string_setup(void)
 {
     strlen_class = p_create_plugclass(gen_sym("strlen"), sizeof(strlen_struct),
                                       strlen_create, NULL, NULL, NULL);
+    
     strcat_class = p_create_plugclass(gen_sym("strcat"), sizeof(strcat_struct),
                                       strcat_create, strcat_destroy, NULL, NULL);
+    p_create_class_alias(strcat_class, gen_sym("strcatr"));
+
     char_at_class = p_create_plugclass(gen_sym("char-at"), sizeof(char_at_struct), 
                                        char_at_create, NULL, NULL, NULL);
-    substr_class = p_create_plugclass(gen_sym("substr"), sizeof(substr_class),
+    
+    substr_class = p_create_plugclass(gen_sym("substr"), sizeof(substr_struct),
                                       substr_create, substr_destroy, NULL, NULL);
-    p_create_class_alias(strcat_class, gen_sym("strcatr"));
+    
+    itoa_class = p_create_plugclass(gen_sym("itoa"), sizeof(itoa_obj), 
+                                    itoa_create, itoa_destroy, NULL, NULL);
+    p_create_class_alias(itoa_class, gen_sym("i->s"));
+    
+    
 }

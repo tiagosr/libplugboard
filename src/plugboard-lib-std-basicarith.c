@@ -19,20 +19,21 @@ struct i_offset_obj {
     t_plugobj base;
     int result;
     int offset;
+    t_outlet *out;
 };
 
 static void i_add_perform(void *obj, int num, void *idata)
 {
     i_offset_obj *iobj = obj;
     iobj->result = num + iobj->offset;
-    o_int(obj, 0, iobj->result);
+    o_int(iobj->out, iobj->result);
 }
 
 static void i_sub_perform(void *obj, int num, void *idata)
 {
     i_offset_obj *iobj = obj;
     iobj->result = num - iobj->offset;
-    o_int(obj, 0, iobj->result);
+    o_int(iobj->out, iobj->result);
 }
 
 static void i_set_offset(void *obj, int num, void *idata)
@@ -44,7 +45,7 @@ static void i_mul_perform(void *obj, int num, void *idata)
 {
     i_offset_obj *iobj = (i_offset_obj *)obj;
     iobj->result = num * iobj->offset;
-    o_int(obj, 0, iobj->result);
+    o_int(iobj->out, iobj->result);
 }
 
 static void i_div_setfactor(void *obj, int num, void *idata)
@@ -60,14 +61,14 @@ static void i_shl_perform(void *obj, int num, void *idata)
 {
     i_offset_obj *iobj = obj;
     iobj->result = num << iobj->offset;
-    o_int(obj, 0, iobj->result);
+    o_int(iobj->out, iobj->result);
 }
 
 static void i_shr_perform(void *obj, int num, void *idata)
 {
     i_offset_obj *iobj = obj;
     iobj->result = num >> iobj->offset;
-    o_int(obj, 0, iobj->result);
+    o_int(iobj->out, iobj->result);
 }
 
 static void i_shift_setoffset(void *obj, int num, void *idata)
@@ -77,7 +78,7 @@ static void i_shift_setoffset(void *obj, int num, void *idata)
 
 static void i_send_result(void *obj, void *idata)
 {
-    o_int(obj, 0, ((i_offset_obj *)obj)->result);
+    o_int(((i_offset_obj *)obj)->out, ((i_offset_obj *)obj)->result);
 }
 
 static void* i_add_create(int argc, char **argv)
@@ -98,7 +99,7 @@ static void* i_add_create(int argc, char **argv)
     
     add_inlet(iobj,"value", fns0, NULL);
     add_inlet(iobj,"offset", fns1, NULL);
-    add_outlet(iobj,"result");
+    iobj->out =add_outlet(iobj,"result");
     return iobj;
 }
 
@@ -120,7 +121,7 @@ static void* i_sub_create(int argc, char **argv)
     
     add_inlet(iobj, "value", fns0, NULL);
     add_inlet(iobj, "offset", fns1, NULL);
-    add_outlet(iobj, "result");
+    iobj->out = add_outlet(iobj, "result");
     return iobj;
 }
 
@@ -142,7 +143,7 @@ static void* i_mul_create(int argc, char **argv)
     
     add_inlet(iobj, "value", fns0, NULL);
     add_inlet(iobj, "factor", fns1, NULL);
-    add_outlet(iobj, "result");
+    iobj->out = add_outlet(iobj, "result");
     return iobj;
 }
 
@@ -164,7 +165,7 @@ static void* i_div_create(int argc, char **argv)
     
     add_inlet(iobj, "value", fns0, NULL);
     add_inlet(iobj, "ratio", fns1, NULL);
-    add_outlet(iobj, "result");
+    iobj->out = add_outlet(iobj, "result");
     return iobj;
 }
 
@@ -186,7 +187,7 @@ static void* i_shl_create(int argc, char **argv)
     
     add_inlet(iobj, "value", fns0, NULL);
     add_inlet(iobj, "ratio", fns1, NULL);
-    add_outlet(iobj, "result");
+    iobj->out = add_outlet(iobj, "result");
     return iobj;
 }
 static void* i_shr_create(int argc, char **argv)
@@ -207,7 +208,7 @@ static void* i_shr_create(int argc, char **argv)
     
     add_inlet(iobj, "value", fns0, NULL);
     add_inlet(iobj, "ratio", fns1, NULL);
-    add_outlet(iobj, "result");
+    iobj->out = add_outlet(iobj, "result");
     return iobj;
 }
 
@@ -215,14 +216,14 @@ static void i_compare_equals(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(iobj->offset==val) {
-		o_bang(iobj,0);
+		o_bang(iobj->out);
 	}
 }
 static void i_compare_not_equal(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(iobj->offset!=val) {
-		o_bang(iobj,0);
+		o_bang(iobj->out);
 	}
 }
 
@@ -230,7 +231,7 @@ static void i_compare_less_than(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(val < iobj->offset) {
-		o_bang(iobj,0);
+		o_bang(iobj->out);
 	}
 }
 
@@ -238,14 +239,14 @@ static void i_compare_greater_than(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(val>iobj->offset) {
-		o_bang(iobj,0);
+		o_bang(iobj->out);
 	}
 }
 static void i_compare_less_than_or_equal(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(val <= iobj->offset) {
-		o_bang(iobj,0);
+		o_bang(iobj->out);
 	}
 }
 
@@ -253,14 +254,14 @@ static void i_compare_greater_than_or_equal(void*obj, int val, void*idata)
 {
 	i_offset_obj* iobj = obj;
 	if(val>=iobj->offset) {
-		o_bang(iobj,0);
+		o_bang(iobj->out);
 	}
 }
 
 static void* i_compare_create(int argc, char** argv)
 {
 	i_offset_obj *obj = p_new(i_compare_class);
-	add_outlet(obj,"true");
+	obj->out = add_outlet(obj,"true");
 	
 	inlet_fn_list(fns_equal)
     i_fn_int(i_compare_equals),
@@ -301,7 +302,6 @@ static void* i_compare_create(int argc, char** argv)
 	} else if (strcmp(argv[0],"=")==0) {
 		add_inlet(obj, "a", fns_gte, NULL);
 	}
-
 	return obj;
 }
 
@@ -331,11 +331,12 @@ typedef struct f_offset_obj {
     t_plugobj base;
     float result;
     float offset;
+    t_outlet *out;
 } f_offset_obj;
 
 static void f_send_result(void *obj, void* idata)
 {
-    o_float(obj, 0, ((f_offset_obj *)obj)->result);
+    o_float(((f_offset_obj *)obj)->out, ((f_offset_obj *)obj)->result);
 }
 
 static void f_set_offset(void *obj, float val, void* idata)
@@ -347,21 +348,21 @@ static void f_add_perform(void *obj, float val, void* idata)
 {
     f_offset_obj *fobj = obj;
     fobj->result = val + fobj->offset;
-    o_float(fobj, 0, fobj->result);
+    o_float(fobj->out, fobj->result);
 }
 
 static void f_sub_perform(void *obj, float val, void* idata)
 {
     f_offset_obj *fobj = obj;
     fobj->result = val - fobj->offset;
-    o_float(fobj, 0, fobj->result);
+    o_float(fobj->out, fobj->result);
 }
 
 static void f_mul_perform(void *obj, float val, void* idata)
 {
     f_offset_obj *fobj = obj;
     fobj->result = val * fobj->offset;
-    o_float(fobj, 0, fobj->result);
+    o_float(fobj->out, fobj->result);
 }
 
 static void f_div_setratio(void *obj, float divisor, void* idata)
@@ -371,7 +372,7 @@ static void f_div_setratio(void *obj, float divisor, void* idata)
 
 static void f_sqrt_perform(void *obj, float val, void *idata)
 {
-    o_float(obj, 0, sqrtf(val));
+    o_float(((f_offset_obj *)obj)->out, sqrtf(val));
 }
 
 static void f_isgt_perform(void *obj, float val, void *idata)
@@ -379,7 +380,7 @@ static void f_isgt_perform(void *obj, float val, void *idata)
     f_offset_obj *fobj;
     fobj->result = val;
     if (val > fobj->offset) {
-        o_bang(fobj, 0);
+        o_bang(fobj->out);
     }
 }
 
@@ -388,7 +389,7 @@ static void f_islt_perform(void *obj, float val, void *idata)
     f_offset_obj *fobj;
     fobj->result = val;
     if (val < fobj->offset) {
-        o_bang(fobj, 0);
+        o_bang(fobj->out);
     }
 }
 
@@ -396,19 +397,26 @@ static void f_moses_send(void *obj, void *idata)
 {
     f_offset_obj *fobj = obj;
     if (fobj->result < fobj->offset) {
-        o_float(fobj, 0, fobj->result);
+        o_float(fobj->out, fobj->result);
     } else {
-        o_float(fobj, 1, fobj->result);
+        o_float(fobj->out, fobj->result);
     }
 }
+
+typedef struct moses_obj {
+    t_plugobj base;
+    float cut, result;
+    t_outlet *less, *more;
+} moses_obj;
+
 static void f_moses_perform(void *obj, float val, void *idata)
 {
-    f_offset_obj *fobj = obj;
+    moses_obj *fobj = obj;
     fobj->result = val;
-    if (val < fobj->offset) {
-        o_float(obj, 0, val);
+    if (val < fobj->cut) {
+        o_float(fobj->less, val);
     } else {
-        o_float(obj, 1, val);
+        o_float(fobj->more, val);
     }
 }
 
@@ -528,19 +536,19 @@ static void* f_cmp_create(int argc, char **argv)
 
 static void *f_moses_create(int argc, char **argv)
 {
-    f_offset_obj *obj = p_new(f_moses_class);
+    moses_obj *obj = p_new(f_moses_class);
     if (argc > 1) {
-        obj->offset = atof(argv[1]);
+        obj->cut = atof(argv[1]);
     } else {
-        obj->offset = 0.0;
+        obj->cut = 0.0;
     }
     inlet_float_fn(fn0, f_moses_perform);
     inlet_float_fn(fn1, f_set_offset);
     
     add_inlet(obj, "in", fn0, NULL);
     add_inlet(obj, "compare", fn1, NULL);
-    add_outlet(obj, "less-than");
-    add_outlet(obj, "greater-than");
+    obj->less = add_outlet(obj, "less-than");
+    obj->more = add_outlet(obj, "greater-than");
     return obj;
 }
 
@@ -557,7 +565,7 @@ static void p_std_basicarith_float_setup(void)
     f_compare_class = p_create_plugclass(gen_sym("<"), sizeof(f_offset_obj), 
                                          f_cmp_create, NULL, NULL, NULL);
     p_create_class_alias(f_compare_class, gen_sym(">"));
-    f_moses_class = p_create_plugclass(gen_sym("moses"), sizeof(f_offset_obj),
+    f_moses_class = p_create_plugclass(gen_sym("moses"), sizeof(moses_obj),
                                        f_moses_create, NULL, NULL, NULL);
 }
 

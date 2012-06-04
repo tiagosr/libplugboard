@@ -13,20 +13,20 @@
 /*
  * typing savers.
  */
-#define o_bang(obj,outlet) \
-        p_outlet_bang((t_plugobj *)obj,outlet)
-#define o_int(obj,outlet, data) \
-        p_outlet_send_int((t_plugobj *)obj,outlet,data)
-#define o_float(obj,outlet,data) \
-        p_outlet_send_float((t_plugobj *)obj,outlet,data)
-#define o_sym(obj,outlet,data) \
-        p_outlet_send_sym((t_plugobj *)obj,outlet,data)
-#define o_string(obj,outlet,data) \
-        p_outlet_send_string((t_plugobj *)obj,outlet,data)
-#define o_list(obj,outlet,data) \
-        p_outlet_send_list((t_plugobj *)obj,outlet,data)
-#define o_any(obj,outlet,any) \
-        p_outlet_send_any((t_plugobj *)obj,outlet,any)
+#define o_bang(outlet) \
+        p_outlet_bang(outlet)
+#define o_int(outlet, data) \
+        p_outlet_send_int(outlet,data)
+#define o_float(outlet,data) \
+        p_outlet_send_float(outlet,data)
+#define o_sym(outlet,data) \
+        p_outlet_send_sym(outlet,data)
+#define o_string(outlet,data) \
+        p_outlet_send_string(outlet,data)
+#define o_list(outlet,data) \
+        p_outlet_send_list(outlet,data)
+#define o_any(outlet,any) \
+        p_outlet_send_any(outlet,any)
 
 #define p_redraw(obj,data) \
         p_send_redraw((t_plugobj *)obj,data)

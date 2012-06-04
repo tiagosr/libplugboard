@@ -39,6 +39,7 @@ struct t_patch {
     t_patch *prev, *next;
 };
 
+
 struct patch_obj {
     t_plugobj base;
     t_patch *patchref;
@@ -49,6 +50,7 @@ struct inlet_obj {
     t_plugobj base;
     t_patch *owner;
     inlet_obj *prev, *next;
+    t_outlet *out;
 };
 
 static t_patch *current_patch;
@@ -57,6 +59,7 @@ struct outlet_obj {
     t_plugobj base;
     size_t pos;
     t_patch *owner;
+    t_outlet *out;
     outlet_obj *prev, *next;
 };
 
@@ -64,6 +67,7 @@ struct loadbang_obj {
     t_plugobj base;
     struct loadbang_obj *prev, *next;
     t_patch *owner;
+    t_outlet *out;
 };
 
 t_patch* p_create_patch(void) {
@@ -74,6 +78,7 @@ t_patch* p_create_patch(void) {
     patch->loadbang_head = patch->loadbang_tail = NULL;
     patch->name = NULL;
     patch->next = patch->prev = NULL;
+    current_patch = patch;
     return patch;
 }
 
@@ -109,10 +114,8 @@ static t_patch* find_subpatch(t_patch *patch, const char* name) {
 }
 
 static void patchobj_inlet_perform(void *obj, t_any any, void *idata) {
-    //patch_obj *pobj = (patch_obj *)obj;
-    inlet_obj *iobj = (inlet_obj *)idata;
-    o_any(iobj, 0, any);
-    
+    inlet_obj *iobj = idata;
+    o_any(iobj->out, any);
 }
 
 static void* patchobj_create(int argc, char **argv) {
@@ -167,7 +170,7 @@ static void patchobj_destroy(void *obj) {
 
 static void* loadbang_create(int argc, char **argv) {
     loadbang_obj *obj = p_new(loadbang_class);
-    add_outlet(obj, "bang");
+    obj->out = add_outlet(obj, "bang");
     obj->owner = current_patch;
     if (current_patch->loadbang_tail) {
         current_patch->loadbang_tail->next = obj;
@@ -197,14 +200,14 @@ static void loadbang_destroy(void*obj) {
 void p_perform_loadbang(t_patch *patch) {
     loadbang_obj *obj = patch->loadbang_head;
     while (obj) {
-        o_bang(obj, 0);
+        o_bang(obj->out);
         obj = obj->next;
     }
 }
 
 static void* inlet_create(int argc, char **argv) {
     inlet_obj *inlet = p_new(inlet_class);
-    add_outlet(inlet, "incoming");
+    inlet->out = add_outlet(inlet, "incoming");
     if (current_patch->inlets_tail) {
         current_patch->inlets_tail->next = inlet;
     } else {
@@ -232,16 +235,19 @@ static void inlet_destroy(void* obj) {
 }
 
 static void outlet_perform(void *obj, t_any any, void*idata) {
-    outlet_obj* oobj = (outlet_obj *)obj;
-    o_any(oobj->owner, oobj->pos, any);
+    outlet_obj* oobj = obj;
+    o_any(oobj->out, any);
 }
 
 static void* outlet_create(int argc, char **argv) {
     outlet_obj *obj = p_new(outlet_class);
-    inlet_fn_list(fns)
-    i_fn_any(outlet_perform),
-    inlet_fn_list_end
+    inlet_any_fn(fns,outlet_perform);
     add_inlet(obj, "outgoing", fns, NULL);
+    t_sym name = gen_sym("out");
+    if (argc > 1) {
+        name = gen_sym(argv[1]);
+    }
+    obj->out = add_outlet(current_patch, name);
     return obj;
 }
 
@@ -267,7 +273,7 @@ struct array_proper {
     void *data;
     int retain_count;
 };
-static void array_send_item(array_obj *out, size_t outlet, array_proper *array, int index) {
+static void array_send_item(t_outlet *outlet, array_proper *array, int index) {
     size_t p_index;
     if (index >= 0 && index < array->array_size) {
         p_index = index;
@@ -279,21 +285,16 @@ static void array_send_item(array_obj *out, size_t outlet, array_proper *array, 
     }
     switch (array->item_type) {
         case t_type_int:
-            o_int(out, 0, ((int *)array->data)[p_index]);
+            o_int(outlet, ((int *)array->data)[p_index]);
             break;
         case t_type_float:
-            o_float(out, 0, ((float *)array->data)[p_index]);
+            o_float(outlet, ((float *)array->data)[p_index]);
             break;
-        /*
-        case t_type_sym:
-            p_outlet_send_sym(out, 0, ((t_sym *)array->data)[p_index]);
-            break;
-         */
         case t_type_string:
-            o_string(out, 0, ((const char **)array->data)[p_index]);
+            o_string(outlet, ((const char **)array->data)[p_index]);
             break;
         case t_type_any:
-            o_any(out, 0, ((t_any *)array->data)[p_index]);
+            o_any(outlet, ((t_any *)array->data)[p_index]);
             break;
         default:
             break;
@@ -303,6 +304,7 @@ static void array_send_item(array_obj *out, size_t outlet, array_proper *array, 
 struct array_obj {
     t_plugobj base;
     array_proper *array;
+    t_outlet *out;
 };
 
 static t_sym range_sym;
@@ -322,7 +324,7 @@ static void array_read(void *obj, t_list command, void *idata) {
 }
 static void array_read_index(void *obj, int index, void *idata) {
     array_obj *aobj = obj;
-    array_send_item(aobj, 0, aobj->array, index);
+    array_send_item(aobj->out, aobj->array, index);
 }
 
 static void *arrayread_create(int argc, char **argv) {
@@ -332,37 +334,39 @@ static void *arrayread_create(int argc, char **argv) {
     i_fn_int(array_read_index),
     inlet_fn_list_end
     add_inlet(obj, "in", fns, NULL);
-    add_outlet(obj, "out");
+    obj->out = add_outlet(obj, "out");
     return obj;
 }
 
-
+typedef struct bang_obj {
+    t_plugobj base;
+    t_outlet *out;
+} bang_obj;
 
 static void bang_perform(void *obj, void *idata)
 {
-    o_bang(obj, 0);
+    o_bang(((bang_obj *)obj)->out);
 }
 
 static void* bang_create(int argc, char **argv)
 {
-    t_plugobj *obj = p_new(bang_class);
-    inlet_fn_list(fns)
-    i_fn_trigger(bang_perform),
-    inlet_fn_list_end
+    bang_obj *obj = p_new(bang_class);
+    inlet_trigger_fn(fns,bang_perform);
     add_inlet(obj, "in", fns, NULL);
-    add_outlet(obj, "out");
+    obj->out = add_outlet(obj, "out");
     return obj;
 }
 
 struct msg_obj {
     t_plugobj base;
     t_list msg_proto, msg;
+    t_outlet *out;
 };
 
 static void msg_bang(void *obj, void *idata)
 {
     msg_obj *mobj = obj;
-    o_list(mobj, 0, mobj->msg);
+    o_list(mobj->out, mobj->msg);
 }
 
 static void *msg_create(int argc, char **argv)
@@ -370,6 +374,9 @@ static void *msg_create(int argc, char **argv)
     msg_obj *obj = NULL;
     if (argc>1) {
         obj = p_new(msg_class);
+        inlet_trigger_fn(fns, msg_bang);
+        add_inlet(obj, "in", fns, NULL);
+        obj->out = add_outlet(obj, "out");
         
     }
     return obj;
@@ -381,7 +388,7 @@ void p_std_control_setup(void) {
                                       outlet_create, outlet_destroy, NULL, NULL);
     inlet_class = p_create_plugclass(gen_sym("inlet"), sizeof(inlet_obj),
                                      inlet_create, inlet_destroy, NULL, NULL);
-    bang_class = p_create_plugclass(gen_sym("bang"), sizeof(t_plugobj),
+    bang_class = p_create_plugclass(gen_sym("bang"), sizeof(bang_obj),
                                     bang_create, NULL, NULL, NULL);
     loadbang_class = p_create_plugclass(gen_sym("loadbang"), sizeof(loadbang_obj),
                                         loadbang_create, loadbang_destroy, 0, 0);
