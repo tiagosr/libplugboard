@@ -16,157 +16,20 @@
 /*
  * control objects
  */
-
-static t_plugclass
-*inlet_class, *outlet_class, *loadbang_class, *patch_class, *bang_class,
-*msg_class, *array_read_class, *array_write_class, *trigger_class;
-
-typedef struct inlet_obj inlet_obj;
-typedef struct outlet_obj outlet_obj;
-typedef struct loadbang_obj loadbang_obj;
-typedef struct patch_obj patch_obj;
 typedef struct array_obj array_obj;
 typedef struct msg_obj msg_obj;
 typedef struct trigger_obj trigger_obj;
 
-struct t_patch {
-    t_sym name;
-    inlet_obj *inlets_head, *inlets_tail;
-    outlet_obj *outlet_head, *outlet_tail;
-    loadbang_obj *loadbang_head, *loadbang_tail;
-    patch_obj *instance_head, *instance_tail;
-    t_patch *subpatch_head, *subpatch_tail;
-    t_patch *prev, *next;
-};
+extern t_patch *current_patch;
 
-
-struct patch_obj {
-    t_plugobj base;
-    t_patch *patchref;
-    patch_obj *prev, *next;
-};
-
-struct inlet_obj {
-    t_plugobj base;
-    t_patch *owner;
-    inlet_obj *prev, *next;
-    t_outlet *out;
-};
-
-static t_patch *current_patch;
-
-struct outlet_obj {
-    t_plugobj base;
-    size_t pos;
-    t_patch *owner;
-    t_outlet *out;
-    outlet_obj *prev, *next;
-};
-
+#pragma mark - [loadbang]
+static t_plugclass *loadbang_class;
 struct loadbang_obj {
     t_plugobj base;
     struct loadbang_obj *prev, *next;
     t_patch *owner;
     t_outlet *out;
 };
-
-t_patch* p_create_patch(void) {
-    t_patch *patch = malloc(sizeof(t_patch));
-    patch->inlets_head = patch->inlets_tail = NULL;
-    patch->outlet_head = patch->outlet_tail = NULL;
-    patch->instance_head = patch->instance_tail = NULL;
-    patch->loadbang_head = patch->loadbang_tail = NULL;
-    patch->name = NULL;
-    patch->next = patch->prev = NULL;
-    current_patch = patch;
-    return patch;
-}
-
-static t_patch* find_subpatch(t_patch *patch, const char* name) {
-    const char *ptr = name;
-    while (ptr[0]) {
-        if (ptr[0]=='/') {
-            t_patch *temp;
-            if (ptr==name) {
-                temp = patch;
-            } else {
-                char *tempname = malloc(ptr+1-name);
-                memcpy(tempname, name, ptr-name);
-                tempname[ptr-name]=0;
-                temp = find_subpatch(patch, tempname);
-                free(tempname);
-            }
-            return find_subpatch(temp,ptr+1);
-        }
-        ptr++;
-    }
-    t_sym sym = find_sym(name);
-    if (sym) {
-        t_patch *subpatch = patch->subpatch_head;
-        while (subpatch) {
-            if (subpatch->name == sym) {
-                return subpatch;
-            }
-            subpatch = subpatch->next;
-        }
-    }
-    return NULL;
-}
-
-static void patchobj_inlet_perform(void *obj, t_any any, void *idata) {
-    inlet_obj *iobj = idata;
-    o_any(iobj->out, any);
-}
-
-static void* patchobj_create(int argc, char **argv) {
-    patch_obj* obj = NULL;
-    if (argc > 1) {
-        t_patch *ref = find_subpatch(current_patch,argv[1]);
-        if (ref) {
-            obj = p_new(patch_class);
-            obj->patchref = ref;
-            if (ref->instance_tail) {
-                ref->instance_tail->next = obj;
-                obj->prev = ref->instance_tail;
-            } else {
-                ref->instance_head = obj;
-                obj->prev = NULL;
-            }
-            obj->next = NULL;
-            ref->instance_tail = obj;
-        } else {
-            t_patch *ref = p_create_patch();
-            // find patch address if 
-            if (current_patch->subpatch_tail) {
-                current_patch->subpatch_tail->next = ref;
-            } else {
-                current_patch->subpatch_head = ref;
-            }
-            ref->prev = current_patch->subpatch_tail;
-            ref->next = NULL;
-            current_patch->subpatch_tail = ref;
-            // create subpatch here
-        }
-    }
-    return obj;
-}
-
-static void patchobj_destroy(void *obj) {
-    patch_obj* patch = obj;
-    if (patch->prev) {
-        patch->prev->next = patch->next;
-    } else {
-        patch->patchref->instance_head = patch->next;
-    }
-    if (patch->next) {
-        patch->next->prev = patch->prev;
-    } else {
-        patch->patchref->instance_tail = patch->prev;
-    }
-    if (patch->patchref->instance_head == NULL && patch->patchref->instance_tail == NULL) {
-        // destroy subpatch here
-    }
-}
 
 static void* loadbang_create(int argc, char **argv) {
     loadbang_obj *obj = p_new(loadbang_class);
@@ -204,67 +67,10 @@ void p_perform_loadbang(t_patch *patch) {
         obj = obj->next;
     }
 }
+// end [loadbang]
 
-static void* inlet_create(int argc, char **argv) {
-    inlet_obj *inlet = p_new(inlet_class);
-    inlet->out = add_outlet(inlet, "incoming");
-    if (current_patch->inlets_tail) {
-        current_patch->inlets_tail->next = inlet;
-    } else {
-        current_patch->inlets_head = inlet;
-    }
-    inlet->prev = current_patch->inlets_tail;
-    if (!current_patch->inlets_head) {
-        current_patch->inlets_head = inlet;
-    }
-    return inlet;
-}
-
-static void inlet_destroy(void* obj) {
-    inlet_obj *inlet = obj;
-    if (inlet->prev) {
-        inlet->prev->next = inlet->next;
-    } else {
-        inlet->owner->inlets_head = inlet->next;
-    }
-    if (inlet->next) {
-        inlet->next->prev = inlet->prev;
-    } else {
-        inlet->owner->inlets_tail = inlet->prev;
-    }
-}
-
-static void outlet_perform(void *obj, t_any any, void*idata) {
-    outlet_obj* oobj = obj;
-    o_any(oobj->out, any);
-}
-
-static void* outlet_create(int argc, char **argv) {
-    outlet_obj *obj = p_new(outlet_class);
-    inlet_any_fn(fns,outlet_perform);
-    add_inlet(obj, "outgoing", fns, NULL);
-    t_sym name = gen_sym("out");
-    if (argc > 1) {
-        name = gen_sym(argv[1]);
-    }
-    obj->out = add_outlet(current_patch, name);
-    return obj;
-}
-
-static void outlet_destroy(void*obj) {
-    outlet_obj *outlet = obj;
-    if (outlet->prev) {
-        outlet->prev->next = outlet->next;
-    } else {
-        outlet->owner->outlet_head = outlet->next;
-    }
-    if (outlet->next) {
-        outlet->next->prev = outlet->prev;
-    } else {
-        outlet->owner->outlet_tail = outlet->prev;
-    }
-}
-
+#pragma mark - [arrayread], [arraywrite]
+static t_plugclass *array_read_class, *array_write_class;
 typedef struct array_proper array_proper;
 struct array_proper {
     int item_type;
@@ -273,6 +79,8 @@ struct array_proper {
     void *data;
     int retain_count;
 };
+
+#pragma mark [arrayread]
 static void array_send_item(t_outlet *outlet, array_proper *array, int index) {
     size_t p_index;
     if (index >= 0 && index < array->array_size) {
@@ -311,9 +119,9 @@ static t_sym range_sym;
 
 static void array_read(void *obj, t_list command, void *idata) {
     array_obj *aobj = obj;
-    switch (command.car_type) {
+    switch (command.first.type) {
         case t_type_sym:
-            if ((t_sym)command.car == range_sym) {
+            if ((t_sym)command.first.sym == range_sym) {
                 size_t start, end;
                 end = aobj->array->array_size;
                 start = 0;
@@ -329,15 +137,20 @@ static void array_read_index(void *obj, int index, void *idata) {
 
 static void *arrayread_create(int argc, char **argv) {
     array_obj *obj = p_new(array_read_class);
-    inlet_fn_list(fns)
-    i_fn_list(array_read),
-    i_fn_int(array_read_index),
-    inlet_fn_list_end
-    add_inlet(obj, "in", fns, NULL);
+    t_inlet *in = add_inlet(obj, "in", NULL);
+    p_inlet_add_list_fn(in, array_read);
+    p_inlet_add_int_fn(in, array_read_index);
     obj->out = add_outlet(obj, "out");
     return obj;
 }
 
+// end [arrayread]
+
+#pragma mark [arraywrite]
+
+#pragma mark - [bang]
+
+static t_plugclass *bang_class;
 typedef struct bang_obj {
     t_plugobj base;
     t_outlet *out;
@@ -351,12 +164,16 @@ static void bang_perform(void *obj, void *idata)
 static void* bang_create(int argc, char **argv)
 {
     bang_obj *obj = p_new(bang_class);
-    inlet_trigger_fn(fns,bang_perform);
-    add_inlet(obj, "in", fns, NULL);
+    t_inlet *in = add_inlet(obj, "in", NULL);
+    p_inlet_add_trigger_fn(in, bang_perform);
     obj->out = add_outlet(obj, "out");
     return obj;
 }
 
+// end [bang]
+
+#pragma mark - [msg]
+static t_plugclass *msg_class;
 struct msg_obj {
     t_plugobj base;
     t_list msg_proto, msg;
@@ -374,27 +191,265 @@ static void *msg_create(int argc, char **argv)
     msg_obj *obj = NULL;
     if (argc>1) {
         obj = p_new(msg_class);
-        inlet_trigger_fn(fns, msg_bang);
-        add_inlet(obj, "in", fns, NULL);
+        t_inlet *in = add_inlet(obj, "in", NULL);
+        p_inlet_add_trigger_fn(in, msg_bang);
         obj->out = add_outlet(obj, "out");
         
     }
     return obj;
 }
+// end [msg]
+
+#pragma mark - [trigger]
+
+static t_plugclass *trigger_class;
+typedef struct trigger_out trigger_out;
+struct trigger_out {
+    t_outlet *out;
+    int type;
+    trigger_out *next;
+};
+struct trigger_obj {
+    t_plugobj base;
+    trigger_out *head;
+};
+
+static void trigger_perform(void *obj, t_any any, void *idata)
+{
+    trigger_obj *trigger = obj;
+    trigger_out *tout = trigger->head;
+    char *str_out = NULL;
+    switch (any.type) {
+        case t_type_int:
+            while (tout) {
+                switch (tout->type) {
+                    case t_type_int:
+                        o_int(tout->out, any.i_data);
+                        break;
+                    case t_type_float:
+                        o_float(tout->out, any.i_data);
+                        break;
+                    case t_type_string:
+                        asprintf(&str_out, "%d", any.i_data);
+                        o_string(tout->out, str_out);
+                        free(str_out);
+                        break;
+                    case t_type_trigger:
+                        o_bang(tout->out);
+                    case t_type_any:
+                        o_any(tout->out, any);
+                    default:
+                        break;
+                }
+                tout = tout->next;
+            }
+            break;
+        case t_type_float:
+            while (tout) {
+                switch (tout->type) {
+                    case t_type_int:
+                        o_int(tout->out, any.f_data);
+                        break;
+                    case t_type_float:
+                        o_float(tout->out, any.f_data);
+                        break;
+                    case t_type_string:
+                        asprintf(&str_out, "%f", any.f_data);
+                        o_string(tout->out, str_out);
+                        free(str_out);
+                        break;
+                    case t_type_trigger:
+                        o_bang(tout->out);
+                    case t_type_any:
+                        o_any(tout->out, any);
+                    default:
+                        break;
+                }
+                tout = tout->next;
+            }
+            break;
+        case t_type_string:
+            while (tout) {
+                switch (tout->type) {
+                    case t_type_int:
+                        o_int(tout->out, atoi(any.string));
+                        break;
+                    case t_type_float:
+                        o_float(tout->out, atof(any.string));
+                        break;
+                    case t_type_string:
+                        o_string(tout->out, any.string);
+                        break;
+                    case t_type_trigger:
+                        o_bang(tout->out);
+                    case t_type_any:
+                        o_any(tout->out, any);
+                    default:
+                        break;
+                }
+                tout = tout->next;
+            }
+            break;
+        case t_type_list:
+            while (tout) {
+                switch (tout->type) {
+                    case t_type_int:
+                        switch (any.list->first.type) {
+                            case t_type_int:
+                                o_int(tout->out, any.list->first.i_data);
+                                break;
+                            case t_type_float:
+                                o_int(tout->out, any.list->first.f_data);
+                                break;
+                            case t_type_string:
+                                o_int(tout->out, atoi(any.list->first.string));
+                                break;
+                            case t_type_trigger:
+                                o_int(tout->out, 1);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case t_type_float:
+                        switch (any.list->first.type) {
+                            case t_type_int:
+                                o_float(tout->out, any.list->first.i_data);
+                                break;
+                            case t_type_float:
+                                o_float(tout->out, any.list->first.f_data);
+                                break;
+                            case t_type_string:
+                                o_float(tout->out, atof(any.list->first.string));
+                                break;
+                            case t_type_trigger:
+                                o_float(tout->out, 1.0);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case t_type_string:
+                        switch (any.list->first.type) {
+                            case t_type_int:
+                                asprintf(&str_out, "%d", any.i_data);
+                                o_string(tout->out, str_out);
+                                free(str_out);
+                                break;
+                            case t_type_float:
+                                asprintf(&str_out, "%f", any.f_data);
+                                o_string(tout->out, str_out);
+                                free(str_out);
+                                break;
+                            case t_type_string:
+#pragma message ("todo: [trigger]: list->string")
+                                break;
+                            case t_type_list:
+#pragma message ("todo: [trigger]: implement list send")
+                                //o_list(tout->out, *any.list);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case t_type_trigger:
+                        o_bang(tout->out);
+                    case t_type_any:
+#pragma message ("todo: [trigger]: any->list")
+                        o_any(tout->out, any);
+                    default:
+                        break;
+                }
+                tout = tout->next;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+static void* trigger_create(int argc, char**argv) {
+    trigger_obj *obj = p_new(trigger_class);
+    trigger_out *prev = NULL, *tout = NULL;
+    int count = 1;
+    while (count<argc) {
+        prev = tout;
+        tout = malloc(sizeof(trigger_out));
+        tout->next = prev;
+        if ((strcmp("any", argv[count])==0)||(strcmp("a", argv[count])==0)) {
+            tout->type = t_type_any;
+            tout->out = add_outlet(obj, "any");
+        } else if ((strcmp("int", argv[count])==0)||(strcmp("i", argv[count])==0)) {
+            tout->type = t_type_int;
+            tout->out = add_outlet(obj, "int");
+        } else if ((strcmp("float", argv[count])==0)||(strcmp("float", argv[count])==0)) {
+            tout->type = t_type_float;
+            tout->out = add_outlet(obj, "float");
+        } else if ((strcmp("string", argv[count])==0)||(strcmp("s", argv[count])==0)) {
+            tout->type = t_type_string;
+            tout->out = add_outlet(obj, "string");
+        } else if ((strcmp("list", argv[count])==0)||(strcmp("l", argv[count])==0)) {
+            tout->type = t_type_list;
+            tout->out = add_outlet(obj, "list");
+        } else if ((strcmp("bang", argv[count])==0)||(strcmp("b", argv[count])==0)) {
+            tout->type = t_type_trigger;
+            tout->out = add_outlet(obj, "bang");
+        }
+        count++;
+    }
+    obj->head = tout;
+    t_inlet *inlet = add_inlet(obj, "in", NULL);
+    p_inlet_add_any_fn(inlet, trigger_perform);
+    return obj;
+}
+
+static void trigger_destroy(void *obj) {
+    trigger_obj *trigger = obj;
+    trigger_out *out = trigger->head, *current;
+    while (out) {
+        current = out;
+        out = out->next;
+        free(current);
+    }
+}
+
+// end [trigger]
+
+#pragma mark - [select]
+
+// end [select]
+
+#pragma mark - [pack]
+
+// end [pack]
+
+#pragma mark - [unpack]
+
+// end [unpack]
+
+#pragma mark - [route]
+
+// end [route]
+
+#pragma mark - [send]
+
+// end [send]
+
+#pragma mark - [receive]
+
+// end [receive]
 
 
+#pragma mark - control library setup
 void p_std_control_setup(void) {
-    outlet_class = p_create_plugclass(gen_sym("outlet"), sizeof(outlet_obj),
-                                      outlet_create, outlet_destroy, NULL, NULL);
-    inlet_class = p_create_plugclass(gen_sym("inlet"), sizeof(inlet_obj),
-                                     inlet_create, inlet_destroy, NULL, NULL);
     bang_class = p_create_plugclass(gen_sym("bang"), sizeof(bang_obj),
                                     bang_create, NULL, NULL, NULL);
     loadbang_class = p_create_plugclass(gen_sym("loadbang"), sizeof(loadbang_obj),
                                         loadbang_create, loadbang_destroy, 0, 0);
-    patch_class = p_create_plugclass(gen_sym("patch"), sizeof(patch_obj),
-                                     patchobj_create, patchobj_destroy, 0, 0);
     array_read_class = p_create_plugclass(gen_sym("arrayread"), sizeof(array_obj),
                                           arrayread_create, NULL, NULL, NULL);
     range_sym = gen_sym("range");
+    trigger_class = p_create_plugclass(gen_sym("trigger"), sizeof(trigger_obj),
+                                       trigger_create, trigger_destroy, NULL, NULL);
+    p_create_class_alias(trigger_class, gen_sym("t"));
 }

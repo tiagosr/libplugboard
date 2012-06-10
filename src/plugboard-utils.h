@@ -33,13 +33,9 @@
 
 #define add_outlet(obj,name) \
         p_add_outlet((t_plugobj *)obj,gen_sym(name))
-#define add_inlet(obj, name, fns, i_obj) \
-        p_add_inlet((t_plugobj *)obj, gen_sym(name), fns, i_obj)
-#define inlet_fn_list(varname) \
-        t_inlet_fn varname [] = {
-#define inlet_fn_list_end \
-            {0, NULL}\
-        };
+#define add_inlet(obj, name, i_obj) \
+        p_add_inlet((t_plugobj *)obj, gen_sym(name), i_obj)
+
 
 #define i_setter(name, type, struct_type, field) \
 void name (void *obj, type __data, void *idata) { \
@@ -54,25 +50,10 @@ void name (void *obj, const char* __data, void *idata) { \
     else { tobj->field = strdup(__data); } \
 }
 
-#define i_fn_trigger(fn) {t_type_trigger, .inlet_trigger = fn }
-#define i_fn_int(fn) {t_type_int, .inlet_int = fn }
-#define i_fn_float(fn) {t_type_float, .inlet_float = fn }
-#define i_fn_any(fn) {t_type_any, .inlet_any = fn }
-#define i_fn_sym(fn) {t_type_sym, .inlet_sym = fn }
-#define i_fn_string(fn) {t_type_string, .inlet_string = fn }
-#define i_fn_list(fn) {t_type_list, .inlet_list = fn }
-
-#define inlet_trigger_fn(name, fn) t_inlet_fn name [] = \
-            { {t_type_trigger, .inlet_trigger = fn }, {0, NULL} }
-#define inlet_int_fn(name, fn) t_inlet_fn name [] = \
-            { {t_type_int, .inlet_int = fn }, {0, NULL} }
-#define inlet_float_fn(name, fn) t_inlet_fn name [] = \
-            { {t_type_float, .inlet_float = fn }, {0, NULL} }
-#define inlet_any_fn(name, fn) t_inlet_fn name [] = \
-            { {t_type_any, .inlet_any = fn }, {0, NULL} };
-#define inlet_string_fn(name, fn) t_inlet_fn name [] = \
-            { {t_type_string, .inlet_string = fn }, {0, NULL} };
-#define inlet_list_fn(name, fn) t_inlet_fn name [] = \
-            { {t_type_list, .inlet_list = fn }, {0, NULL} };
+#define i_bangsender(name, type, struct_type, field, outlet)\
+void name (void *obj, void *idata) { \
+    struct_type *tobj = obj; \
+    p_outlet_send_##type(tobj->outlet, tobj->field); \
+}
 
 #endif

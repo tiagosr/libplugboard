@@ -22,6 +22,8 @@ struct i_offset_obj {
     t_outlet *out;
 };
 
+#pragma mark - [(+,-,*,/,<<,>>)i]
+
 static void i_add_perform(void *obj, int num, void *idata)
 {
     i_offset_obj *iobj = obj;
@@ -81,70 +83,36 @@ static void i_send_result(void *obj, void *idata)
     o_int(((i_offset_obj *)obj)->out, ((i_offset_obj *)obj)->result);
 }
 
-static void* i_add_create(int argc, char **argv)
+static void* i_op_create(t_plugclass *pclass, int argc, char **argv, t_inlet_int_fn perform)
 {
-    i_offset_obj* iobj = p_new(i_add_class);
+    i_offset_obj* iobj = p_new(pclass);
     if (argc>1) {
         iobj->offset = atoi(argv[1]);
     } else {
         iobj->offset = 0;
     }
-    inlet_fn_list(fns0)
-        i_fn_int(i_add_perform),
-        i_fn_trigger(i_send_result),
-    inlet_fn_list_end
-    inlet_fn_list(fns1)
-        i_fn_int(i_set_offset),
-    inlet_fn_list_end
-    
-    add_inlet(iobj,"value", fns0, NULL);
-    add_inlet(iobj,"offset", fns1, NULL);
-    iobj->out =add_outlet(iobj,"result");
+    t_inlet *value = add_inlet(iobj,"value", NULL);
+    p_inlet_add_int_fn(value, perform);
+    p_inlet_add_trigger_fn(value, i_send_result);
+    t_inlet *offset = add_inlet(iobj,"offset", NULL);
+    p_inlet_add_int_fn(offset, i_set_offset);
+    iobj->out = add_outlet(iobj,"result");
     return iobj;
+    
+}
+static void* i_add_create(int argc, char **argv)
+{
+    return i_op_create(i_add_class, argc, argv, i_add_perform);
 }
 
 static void* i_sub_create(int argc, char **argv)
 {
-    i_offset_obj* iobj = p_new(i_sub_class);
-    if (argc>1) {
-        iobj->offset = atoi(argv[1]);
-    } else {
-        iobj->offset = 0;
-    }
-    inlet_fn_list(fns0)
-        i_fn_int(i_sub_perform),
-        i_fn_trigger(i_send_result),
-    inlet_fn_list_end
-    inlet_fn_list(fns1)
-        i_fn_int(i_set_offset),
-    inlet_fn_list_end
-    
-    add_inlet(iobj, "value", fns0, NULL);
-    add_inlet(iobj, "offset", fns1, NULL);
-    iobj->out = add_outlet(iobj, "result");
-    return iobj;
+    return i_op_create(i_sub_class, argc, argv, i_sub_perform);
 }
 
 static void* i_mul_create(int argc, char **argv)
 {
-    i_offset_obj* iobj = p_new(i_mul_class);
-    if (argc>1) {
-        iobj->offset = atoi(argv[1]);
-    } else {
-        iobj->offset = 0;
-    }
-    inlet_fn_list(fns0)
-        i_fn_int(i_mul_perform),
-        i_fn_trigger(i_send_result),
-    inlet_fn_list_end
-    inlet_fn_list(fns1)
-        i_fn_int(i_set_offset),
-    inlet_fn_list_end
-    
-    add_inlet(iobj, "value", fns0, NULL);
-    add_inlet(iobj, "factor", fns1, NULL);
-    iobj->out = add_outlet(iobj, "result");
-    return iobj;
+    return i_op_create(i_mul_class, argc, argv, i_mul_perform);
 }
 
 static void* i_div_create(int argc, char **argv)
@@ -155,16 +123,11 @@ static void* i_div_create(int argc, char **argv)
     } else {
         iobj->offset = 0;
     }
-    inlet_fn_list(fns0)
-        i_fn_int(i_mul_perform),
-        i_fn_trigger(i_send_result),
-    inlet_fn_list_end
-    inlet_fn_list(fns1)
-        i_fn_int(i_div_setfactor),
-    inlet_fn_list_end
-    
-    add_inlet(iobj, "value", fns0, NULL);
-    add_inlet(iobj, "ratio", fns1, NULL);
+    t_inlet *value = add_inlet(iobj,"value", NULL);
+    p_inlet_add_int_fn(value, i_mul_perform);
+    p_inlet_add_trigger_fn(value, i_send_result);
+    t_inlet *offset = add_inlet(iobj,"ratio", NULL);
+    p_inlet_add_int_fn(offset, i_div_setfactor);
     iobj->out = add_outlet(iobj, "result");
     return iobj;
 }
@@ -177,16 +140,11 @@ static void* i_shl_create(int argc, char **argv)
     } else {
         iobj->offset = 0;
     }
-    inlet_fn_list(fns0)
-    i_fn_int(i_shl_perform),
-    i_fn_trigger(i_send_result),
-    inlet_fn_list_end
-    inlet_fn_list(fns1)
-    i_fn_int(i_shift_setoffset),
-    inlet_fn_list_end
-    
-    add_inlet(iobj, "value", fns0, NULL);
-    add_inlet(iobj, "ratio", fns1, NULL);
+    t_inlet *value = add_inlet(iobj,"value", NULL);
+    p_inlet_add_int_fn(value, i_shl_perform);
+    p_inlet_add_trigger_fn(value, i_send_result);
+    t_inlet *offset = add_inlet(iobj,"offset", NULL);
+    p_inlet_add_int_fn(offset, i_shift_setoffset);
     iobj->out = add_outlet(iobj, "result");
     return iobj;
 }
@@ -198,19 +156,16 @@ static void* i_shr_create(int argc, char **argv)
     } else {
         iobj->offset = 0;
     }
-    inlet_fn_list(fns0)
-    i_fn_int(i_shr_perform),
-    i_fn_trigger(i_send_result),
-    inlet_fn_list_end
-    inlet_fn_list(fns1)
-    i_fn_int(i_shift_setoffset),
-    inlet_fn_list_end
-    
-    add_inlet(iobj, "value", fns0, NULL);
-    add_inlet(iobj, "ratio", fns1, NULL);
+    t_inlet *value = add_inlet(iobj,"value", NULL);
+    p_inlet_add_int_fn(value, i_shr_perform);
+    p_inlet_add_trigger_fn(value, i_send_result);
+    t_inlet *offset = add_inlet(iobj,"offset", NULL);
+    p_inlet_add_int_fn(offset, i_shift_setoffset);
     iobj->out = add_outlet(iobj, "result");
     return iobj;
 }
+
+#pragma mark - [(=,!=,<,>,<=,>=)i]
 
 static void i_compare_equals(void*obj, int val, void*idata)
 {
@@ -262,50 +217,60 @@ static void* i_compare_create(int argc, char** argv)
 {
 	i_offset_obj *obj = p_new(i_compare_class);
 	obj->out = add_outlet(obj,"true");
-	
-	inlet_fn_list(fns_equal)
-    i_fn_int(i_compare_equals),
-    inlet_fn_list_end
-    
-	inlet_fn_list(fns_not_equal)
-    i_fn_int(i_compare_not_equal),
-    inlet_fn_list_end
-    
-	inlet_fn_list(fns_lt)
-    i_fn_int(i_compare_less_than),
-    inlet_fn_list_end
-    
-	inlet_fn_list(fns_lte)
-    i_fn_int(i_compare_less_than_or_equal),
-    inlet_fn_list_end
-    
-	inlet_fn_list(fns_gt)
-    i_fn_int(i_compare_greater_than),
-    inlet_fn_list_end
-    
-	inlet_fn_list(fns_gte)
-    i_fn_int(i_compare_greater_than_or_equal),
-    inlet_fn_list_end
-                
-	if (strcmp(argv[0],"=")==0) {
-		add_inlet(obj, "a", fns_equal, NULL);
-	} else if (strcmp(argv[0],"!=")==0) {
-		add_inlet(obj, "a", fns_not_equal, NULL);
+	t_inlet * a = add_inlet(obj, "a", NULL);
+
+	if (strcmp(argv[0],"=i")==0) {
+		p_inlet_add_int_fn(a, i_compare_equals);
+	} else if (strcmp(argv[0],"!=i")==0) {
+		p_inlet_add_int_fn(a, i_compare_not_equal);
 	} else 
-	if (strcmp(argv[0],"<")==0) {
-		add_inlet(obj, "a", fns_lt, NULL);
+	if (strcmp(argv[0],"<i")==0) {
+        p_inlet_add_int_fn(a, i_compare_less_than);
 	} else 
-	if (strcmp(argv[0],"<=")==0) {
-		add_inlet(obj, "a", fns_lte, NULL);
-	} else if (strcmp(argv[0],">")==0) {
-		add_inlet(obj, "a", fns_gt, NULL);
-	} else if (strcmp(argv[0],"=")==0) {
-		add_inlet(obj, "a", fns_gte, NULL);
+	if (strcmp(argv[0],"<=i")==0) {
+        p_inlet_add_int_fn(a, i_compare_less_than_or_equal);
+	} else if (strcmp(argv[0],">i")==0) {
+        p_inlet_add_int_fn(a, i_compare_greater_than);
+	} else if (strcmp(argv[0],"=i")==0) {
+        p_inlet_add_int_fn(a, i_compare_greater_than_or_equal);
+
 	}
 	return obj;
 }
 
+/// logic operators
 
+// [&&]
+
+// end [&&]
+
+// [||]
+
+// end [||]
+
+// [!]
+
+// end [!]
+
+/// end logic operators
+
+/// bitwise operators
+
+/// end bitwise operators
+
+// [iclip]
+
+// end [iclip]
+
+// [imax]
+
+// end [imax]
+
+// [imin]
+
+// end [imin]
+
+#pragma mark - int arithmetics lib setup
 
 static void p_std_basicarith_int_setup(void)
 {
@@ -321,9 +286,16 @@ static void p_std_basicarith_int_setup(void)
                                             i_shl_create, NULL, NULL, NULL);
     i_shift_right_class = p_create_plugclass(gen_sym(">>"), sizeof(i_offset_obj),
                                              i_shr_create, NULL, NULL, NULL);
-    i_compare_class = p_create_plugclass(gen_sym("="),sizeof(i_offset_obj),
+    i_compare_class = p_create_plugclass(gen_sym("=i"),sizeof(i_offset_obj),
                                              i_compare_create, NULL, NULL, NULL);
+    p_create_class_alias(i_compare_class, gen_sym("!=i"));
+    p_create_class_alias(i_compare_class, gen_sym(">=i"));
+    p_create_class_alias(i_compare_class, gen_sym("<=i"));
+    p_create_class_alias(i_compare_class, gen_sym(">i"));
+    p_create_class_alias(i_compare_class, gen_sym("<i"));
 }
+
+#pragma mark - [(+,-,*,/)]
 
 static t_plugclass *f_add_class, *f_sub_class, *f_mul_class, *f_div_class, *f_compare_class, *f_moses_class;
 
@@ -393,116 +365,52 @@ static void f_islt_perform(void *obj, float val, void *idata)
     }
 }
 
-static void f_moses_send(void *obj, void *idata)
+static void* f_op_create(t_plugclass *pclass, int argc, char **argv, t_inlet_float_fn perform)
 {
-    f_offset_obj *fobj = obj;
-    if (fobj->result < fobj->offset) {
-        o_float(fobj->out, fobj->result);
-    } else {
-        o_float(fobj->out, fobj->result);
-    }
-}
-
-typedef struct moses_obj {
-    t_plugobj base;
-    float cut, result;
-    t_outlet *less, *more;
-} moses_obj;
-
-static void f_moses_perform(void *obj, float val, void *idata)
-{
-    moses_obj *fobj = obj;
-    fobj->result = val;
-    if (val < fobj->cut) {
-        o_float(fobj->less, val);
-    } else {
-        o_float(fobj->more, val);
-    }
-}
-
-
-static void* f_add_create(int argc, char **argv)
-{
-    f_offset_obj *obj = p_new(f_add_class);
+    f_offset_obj *obj = p_new(pclass);
     if (argc>1) {
         obj->offset = atof(argv[1]);
     } else {
         obj->offset = 0.0;
     }
-    inlet_fn_list(fn0)
-        i_fn_float(f_add_perform),
-        i_fn_trigger(f_send_result),
-    inlet_fn_list_end
-    inlet_fn_list(fn1)
-        i_fn_float(f_set_offset),
-    inlet_fn_list_end
-
-    add_inlet(obj, "in", fn0, NULL);
-    add_inlet(obj, "offset", fn1, NULL);
+    t_inlet *value = add_inlet(obj,"value", NULL);
+    p_inlet_add_float_fn(value, perform);
+    p_inlet_add_trigger_fn(value, f_send_result);
+    t_inlet *offset = add_inlet(obj,"offset", NULL);
+    p_inlet_add_float_fn(offset, f_set_offset);
+    
     add_outlet(obj, "out");
     return obj;
+}
+
+static void* f_add_create(int argc, char **argv)
+{
+    return f_op_create(f_add_class, argc, argv, f_add_perform);
 }
 
 static void* f_sub_create(int argc, char **argv)
 {
-    f_offset_obj *obj = p_new(f_add_class);
-    if (argc>1) {
-        obj->offset = atof(argv[1]);
-    } else {
-        obj->offset = 0.0;
-    }
-    inlet_fn_list(fn0)
-    i_fn_float(f_sub_perform),
-    i_fn_trigger(f_send_result),
-    inlet_fn_list_end
-    inlet_fn_list(fn1)
-    i_fn_float(f_set_offset),
-    inlet_fn_list_end
-    
-    add_inlet(obj, "in", fn0, NULL);
-    add_inlet(obj, "offset", fn1, NULL);
-    add_outlet(obj, "out");
-    return obj;
+    return f_op_create(f_sub_class, argc, argv, f_sub_perform);
 }
 
 static void* f_mul_create(int argc, char **argv)
 {
-    f_offset_obj *obj = p_new(f_mul_class);
-    if (argc>1) {
-        obj->offset = atof(argv[1]);
-    } else {
-        obj->offset = 0.0;
-    }
-    inlet_fn_list(fn0)
-    i_fn_float(f_mul_perform),
-    i_fn_trigger(f_send_result),
-    inlet_fn_list_end
-    inlet_fn_list(fn1)
-    i_fn_float(f_set_offset),
-    inlet_fn_list_end
-    
-    add_inlet(obj, "in", fn0, NULL);
-    add_inlet(obj, "factor", fn1, NULL);
-    add_outlet(obj, "out");
-    return obj;
+    return f_op_create(f_mul_class, argc, argv, f_mul_perform);
 }
 
 static void* f_div_create(int argc, char **argv)
 {
-    f_offset_obj *obj = p_new(f_add_class);
+    f_offset_obj *obj = p_new(f_div_class);
     if (argc>1) {
         obj->offset = atof(argv[1]);
     } else {
         obj->offset = 0.0;
     }
-    inlet_fn_list(fn0)
-    i_fn_float(f_mul_perform),
-    i_fn_trigger(f_send_result),
-    inlet_fn_list_end
-    inlet_float_fn(fn1,f_div_setratio);
-    
-    add_inlet(obj, "in", fn0, NULL);
-    add_inlet(obj, "ratio", fn1, NULL);
+    t_inlet *value = add_inlet(obj,"value", NULL);
+    p_inlet_add_float_fn(value, f_mul_perform);
+    p_inlet_add_trigger_fn(value, f_send_result);
+    t_inlet *offset = add_inlet(obj,"ratio", NULL);
+    p_inlet_add_float_fn(offset, f_div_setratio);
     add_outlet(obj, "out");
     return obj;
 }
@@ -515,23 +423,49 @@ static void* f_cmp_create(int argc, char **argv)
     } else {
         obj->offset = 0.0;
     }
-    inlet_fn_list(fngt)
-        i_fn_float(f_isgt_perform),
-        i_fn_trigger(f_send_result),
-    inlet_fn_list_end
-    inlet_fn_list(fnlt)
-        i_fn_float(f_islt_perform),
-        i_fn_trigger(f_send_result),
-    inlet_fn_list_end
-    inlet_float_fn(fn1,f_set_offset);
+    t_inlet *value = add_inlet(obj,"a", NULL);
+    t_inlet *offset = add_inlet(obj,"b", NULL);
+    p_inlet_add_float_fn(offset, f_set_offset);
+    
+    add_outlet(obj, "out");
+
     if (strcmp("<", argv[0])==0) {
-        add_inlet(obj, "in", fnlt, NULL);
+        p_inlet_add_float_fn(value, f_islt_perform);
     } else {
-        add_inlet(obj, "in", fngt, NULL);
+        p_inlet_add_float_fn(value, f_isgt_perform);
     }
-    add_inlet(obj, "compare", fn1, NULL);
     add_outlet(obj, "true");
     return obj;
+}
+
+
+#pragma mark - [moses]
+typedef struct moses_obj {
+    t_plugobj base;
+    float cut, result;
+    t_outlet *less, *more;
+} moses_obj;
+
+static void f_moses_send(void *obj, void *idata)
+{
+    moses_obj *fobj = obj;
+    if (fobj->result < fobj->cut) {
+        o_float(fobj->less, fobj->result);
+    } else {
+        o_float(fobj->more, fobj->result);
+    }
+}
+
+
+static void f_moses_perform(void *obj, float val, void *idata)
+{
+    moses_obj *fobj = obj;
+    fobj->result = val;
+    if (val < fobj->cut) {
+        o_float(fobj->less, val);
+    } else {
+        o_float(fobj->more, val);
+    }
 }
 
 static void *f_moses_create(int argc, char **argv)
@@ -541,16 +475,40 @@ static void *f_moses_create(int argc, char **argv)
         obj->cut = atof(argv[1]);
     } else {
         obj->cut = 0.0;
-    }
-    inlet_float_fn(fn0, f_moses_perform);
-    inlet_float_fn(fn1, f_set_offset);
-    
-    add_inlet(obj, "in", fn0, NULL);
-    add_inlet(obj, "compare", fn1, NULL);
+    }    
+    add_outlet(obj, "out");
     obj->less = add_outlet(obj, "less-than");
     obj->more = add_outlet(obj, "greater-than");
+    t_inlet *value = add_inlet(obj,"in", NULL);
+    p_inlet_add_float_fn(value, f_moses_perform);
+    t_inlet *offset = add_inlet(obj,"compare", NULL);
+    p_inlet_add_float_fn(offset, f_moses_send);
+    
     return obj;
 }
+// end [moses]
+
+// [pow]
+
+// end [pow]
+
+// [sqrt]
+
+// end [sqrt]
+
+// [clip]
+
+// end [clip]
+
+// [max]
+
+// end [max]
+
+// [min]
+
+// end [min]
+
+#pragma - float arithmetics library setup
 
 static void p_std_basicarith_float_setup(void)
 {
@@ -569,6 +527,7 @@ static void p_std_basicarith_float_setup(void)
                                        f_moses_create, NULL, NULL, NULL);
 }
 
+#pragma - arithmetics library setup
 
 void p_std_basicarith_setup(void)
 {

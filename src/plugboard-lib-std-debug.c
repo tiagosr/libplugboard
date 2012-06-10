@@ -14,7 +14,7 @@
 /*
  * basic graphic/debug/diagnosis types
  */
-// [print]
+#pragma mark - [print]
 static t_plugclass *print_class;
 //*msg_class, *numbox_class, *strbox_class,
 //*bng_class, *tgl_class
@@ -73,10 +73,8 @@ static void*print_create(int argc, char **argv) {
     } else {
         obj->description = NULL;
     }
-    inlet_fn_list(fns)
-    i_fn_any(print_perform),
-    inlet_fn_list_end
-    add_inlet(obj, "in", fns, NULL);
+    t_inlet *in = add_inlet(obj, "in", NULL);
+    p_inlet_add_any_fn(in, print_perform);
     return obj;
 }
 

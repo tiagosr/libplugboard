@@ -16,7 +16,7 @@
  * basic types and containers
  */
 
-// [int], [i]
+#pragma mark - [int], [i]
 static t_plugclass *int_class;
 typedef struct int_obj {
     t_plugobj base;
@@ -41,15 +41,13 @@ static void int_set(void *obj, t_any data, void*idata) {
 static void *i_class_new(int argc, char **argv) {
     int_obj *obj = p_new(int_class);
     obj->data = 0;
-    inlet_fn_list(fns)
-    i_fn_any(int_set),
-    inlet_fn_list_end
-    add_inlet(obj, "in", fns, NULL);
+    t_inlet *in = add_inlet(obj, "in", NULL);
+    p_inlet_add_any_fn(in, int_set);
     obj->out = add_outlet(obj, "out");
     return obj;
 }
 
-// [float], [f]
+#pragma mark - [float], [f]
 static t_plugclass *float_class;
 typedef struct {
     t_plugobj base;
@@ -74,15 +72,13 @@ static void f_set(void *obj, t_any data, void *idata) {
 static void *f_class_new(int argc, char **argv) {
     float_obj *obj = p_new(int_class);
     obj->data = 0;
-    inlet_fn_list(fns)
-    i_fn_any(f_set),
-    inlet_fn_list_end
-    add_inlet(obj, "in", fns, NULL);
+    t_inlet *in = add_inlet(obj, "in", NULL);
+    p_inlet_add_any_fn(in, f_set);
     obj->out = add_outlet(obj, "out");
     return obj;
 }
 
-// [string], [s]
+#pragma mark - [string], [str]
 static t_plugclass *string_class;
 typedef struct string_obj {
     t_plugobj base;
@@ -112,15 +108,13 @@ static void* s_create(int argc, char** argv) {
 	} else {
 		obj->string = strdup("");
 	}
-	inlet_fn_list(fns)
-    i_fn_any(s_set),
-    inlet_fn_list_end
-    add_inlet(obj, "in", fns, NULL);
+    t_inlet *in = add_inlet(obj, "in", NULL);
+    p_inlet_add_any_fn(in, s_set);
 	obj->out = add_outlet(obj, "out");
 	return obj;
 }
 
-// [list], [l]
+#pragma mark - [list], [l]
 static t_plugclass *list_class;
 typedef struct list_obj {
     t_plugobj base;
@@ -131,12 +125,12 @@ typedef struct list_obj {
 static void list_set(void *obj, t_any any, void*idata) {
     list_obj *lobj = (list_obj *)obj;
     if (any.type == t_type_trigger) {
-        
+        // fall-through to send currently stored list
     } else if (any.type == t_type_list) {
         memcpy(&(lobj->list), any.list, sizeof(t_list));
     } else {
-        lobj->list.car_type = any.type;
-        lobj->list.car = any.something;
+        lobj->list.first = any;
+        lobj->list.rest = NULL;
     }
     o_list(lobj->out, lobj->list);
 }
@@ -144,15 +138,13 @@ static void list_set(void *obj, t_any any, void*idata) {
 static void* list_create(int argc, const char **argv) {
     list_obj *obj = p_new(list_class);
     
-    inlet_fn_list(fns)
-    i_fn_any(list_set),
-    inlet_fn_list_end
-    add_inlet(obj, "in", fns, NULL);
+    t_inlet * in = add_inlet(obj, "in", NULL);
+    p_inlet_add_any_fn(in, list_set);
     obj->out = add_outlet(obj, "out");
     return obj;
 }
 
-// [any], [a]
+#pragma mark - [any], [a]
 static t_plugclass *any_class;
 typedef struct any_obj {
 	t_plugobj base;
@@ -169,15 +161,13 @@ static void any_set(void *obj, t_any any, void*idata) {
 static void* any_create(int argc, const char **argv) {
 	any_obj* obj = p_new(any_class);
 	obj->any = (t_any){t_type_trigger, 0};
-	inlet_fn_list(fns)
-    i_fn_any(any_set),
-    inlet_fn_list_end
-    add_inlet(obj, "in", fns, NULL);
+    t_inlet *in = add_inlet(obj, "in", NULL);
+    p_inlet_add_any_fn(in, any_set);
 	obj->out = add_outlet(obj, "out");
 	return obj;
 }
 
-
+#pragma mark - basic types library setup
 void p_std_basictypes_setup(void) {
     int_class = p_create_plugclass(gen_sym("int"), sizeof(int_obj),
                                    i_class_new,p_default_destroy,0,0);
@@ -187,5 +177,5 @@ void p_std_basictypes_setup(void) {
     p_create_class_alias(int_class, gen_sym("f"));
     string_class = p_create_plugclass(gen_sym("string"), sizeof(string_obj),
                                       s_create,p_default_destroy,0,0);
-    p_create_class_alias(string_class, gen_sym("s"));
+    p_create_class_alias(string_class, gen_sym("str"));
 }

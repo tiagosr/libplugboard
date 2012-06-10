@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 
-// [strlen]
+#pragma mark - [strlen]
 static t_plugclass *strlen_class;
 typedef struct strlen_struct {
     t_plugobj base;
@@ -30,17 +30,15 @@ static void* strlen_create(int argc, char **argv)
 {
     strlen_struct *op = p_new(strlen_class);
     op->len= 0;
-    inlet_fn_list(fstring)
-    i_fn_string(strlen_perform),
-    inlet_fn_list_end
-    add_inlet(op, "string", fstring, NULL);
     op->out = add_outlet(op, "length");
+    t_inlet *string = add_inlet(op, "string", NULL);
+    p_inlet_add_string_fn(string, strlen_perform);
     return op;
 }
 // end [strlen]
 
 
-// [strcat]
+#pragma mark - [strcat]
 static t_plugclass *strcat_class;
 typedef struct strcat_struct {
     t_plugobj base;
@@ -91,18 +89,13 @@ static void* strcat_create(int argc, char **argv)
     } else {
         op->to_concat = strdup("");
     }
-    inlet_fn_list(fcat)
-        i_fn_string(strcat_perform),
-    inlet_fn_list_end
-    inlet_fn_list(frcat)
-        i_fn_string(strcat_perform_r),
-    inlet_fn_list_end
-    inlet_string_fn(fset, strcat_set_to_concat);
+    t_inlet *str_i = add_inlet(op, "string", NULL);
     if (strcmp("strcat", (const char *)argv[0])==0)
-    { add_inlet(op, "string", fcat, NULL); }
+    { p_inlet_add_string_fn(str_i, strcat_perform); }
     else
-    { add_inlet(op, "string", frcat, NULL); }
-    add_inlet(op, "string", fset, NULL);
+    { p_inlet_add_string_fn(str_i, strcat_perform); }
+    t_inlet *to_concat = add_inlet(op, "string", NULL);
+    p_inlet_add_string_fn(to_concat, strcat_set_to_concat);
     op->out = add_outlet(op, "concatenated");
     return op;
 }
@@ -111,7 +104,7 @@ static void* strcat_create(int argc, char **argv)
 
 
 
-// [char-at]
+#pragma mark - [char-at]
 static t_plugclass *char_at_class;
 typedef struct char_at_struct {
     t_plugobj base;
@@ -141,21 +134,17 @@ static void* char_at_create(int argc, char**argv)
     } else {
         obj->pos = 0;
     }
-    inlet_fn_list(fn)
-        i_fn_string(char_at_perform),
-    inlet_fn_list_end
-    inlet_fn_list(fn2)
-        i_fn_int(char_at_set_pos),
-    inlet_fn_list_end
-    add_inlet(obj, "string", fn, NULL);
-    add_inlet(obj, "position", fn2, NULL);
+    t_inlet * str_in = add_inlet(obj, "string", NULL);
+    p_inlet_add_string_fn(str_in, char_at_perform);
+    t_inlet * pos_in = add_inlet(obj, "position", NULL);
+    p_inlet_add_int_fn(pos_in, char_at_set_pos);
     obj->out = add_outlet(obj, "character");
     return obj;
 }
 
 // end [char-at]
 
-// [substr]
+#pragma mark - [substr]
 static t_plugclass *substr_class;
 
 typedef struct substr_struct {
@@ -201,6 +190,7 @@ static void substr_perform(void *vobj, const char* string, void *idata)
     }
     o_string(obj->out, obj->part);
 }
+static i_bangsender(substr_send_part, string, substr_struct, part, out);
 
 static i_setter(substr_set_from, int, substr_struct, from);
 static i_setter(substr_set_to, int, substr_struct, to);
@@ -219,16 +209,14 @@ static void* substr_create(int argc, char** argv) {
         obj->to = -1;
     }
     obj->part = strdup("");
-    inlet_fn_list(fnstring)
-    i_fn_string(substr_perform),
-    inlet_fn_list_end
-    inlet_int_fn(fnsetfrom, substr_set_from);
-    inlet_int_fn(fnsetto, substr_set_to);
     
-    add_inlet(obj, "string", fnstring, NULL);
-    add_inlet(obj, "from", fnsetfrom, NULL);
-    add_inlet(obj, "to", fnsetto, NULL);
-    
+    t_inlet *str_in = add_inlet(obj, "string", NULL);
+    t_inlet *from_in = add_inlet(obj, "from", NULL);
+    t_inlet *to_in = add_inlet(obj, "to", NULL);
+    p_inlet_add_string_fn(str_in, substr_perform);
+    p_inlet_add_trigger_fn(str_in, substr_send_part);
+    p_inlet_add_int_fn(from_in, substr_set_from);
+    p_inlet_add_int_fn(to_in, substr_set_to);
     obj->out = add_outlet(obj, "substring");
     return obj;
 }
@@ -240,7 +228,7 @@ static void substr_destroy(void *obj) {
 
 // end [substr]
 
-// [itoa]
+#pragma mark - [itoa]
 static t_plugclass *itoa_class;
 typedef struct itoa_obj {
     t_plugobj base;
@@ -261,8 +249,8 @@ static void* itoa_create(int argc, char **argv)
 {
     itoa_obj *obj = p_new(itoa_class);
     obj->result = strdup("");
-    inlet_int_fn(fn, itoa_perform);
-    add_inlet(obj, "int", fn, NULL);
+    t_inlet *int_in = add_inlet(obj, "int", NULL);
+    p_inlet_add_int_fn(int_in, itoa_perform);
     obj->out = add_outlet(obj, "string");
     return obj;
 }
@@ -274,8 +262,7 @@ static void itoa_destroy(void *obj)
 
 // end [itoa]
 
-
-
+#pragma mark - string lib setup
 
 void p_std_string_setup(void)
 {

@@ -11,10 +11,18 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <math.h>
+#include "plugboard-utils.h"
 void p_std_setup(void);
 typedef struct t_plugclass_name {
     t_sym name; t_plugclass *ref;
 } t_plugclass_name;
+
+
+/**
+ *
+ * statics and globals
+ *
+ */
 
 //static unsigned stack_depth = 0;
 static int symbol_pool_size = -1, symbol_pool_occupied = 0;
@@ -23,6 +31,12 @@ static t_sym * symbol_pool = NULL;
 static int class_pool_size = -1, class_pool_occupied = 0;
 static t_plugclass_name *class_pool = NULL;
 static t_sym bang_sym = NULL;
+static t_plugclass
+*inlet_class, *outlet_class, *patch_class;
+
+t_patch *current_patch;
+
+#pragma mark - Symbol stuff
 
 /*
  * generates a symbol by putting a copy of the string in the symbol pool,
@@ -74,6 +88,8 @@ t_sym find_sym(const char *s)
     return NULL;
 }
 
+#pragma mark - Outlet Sentry Utility Functions
+
 /*
  * utility functions for sending data to outlets
  */
@@ -111,6 +127,7 @@ static void send_float_as_any(void*target, t_inlet_fn *in, float data, void * tg
     in->inlet_any(target,any,tg_data);
 }
 
+#pragma mark - Outlet sentry
 /*
  * outlet sentry functions
  */
@@ -337,37 +354,17 @@ void p_send_redraw(t_plugobj *obj, t_any data)
     }
 }
 
+#pragma mark - Inlet creation
 /*
  * inlet creation
  */
-void p_add_inlet(t_plugobj *obj, t_sym name, t_inlet_fn *fns, void *idata)
+t_inlet* p_add_inlet(t_plugobj *obj, t_sym name, void *idata)
 {
-    int fn_len = 0;
     t_inlet *inlet = malloc(sizeof(t_inlet));
     inlet->name = name;
     inlet->data = idata;
+    inlet->head = NULL;
     inlet->tail = NULL;
-    inlet->fns = malloc(sizeof(t_inlet_fn*)*2);
-    while (fns[0].inlet_any) {
-        t_inlet_fn *inlet_fn = malloc(sizeof(t_inlet_fn));
-        inlet_fn->inlet_type = fns[0].inlet_type;
-        inlet_fn->inlet_any = fns[0].inlet_any;
-        inlet->fns[fn_len] = inlet_fn;
-        fn_len++;
-        if (inlet->tail) {
-            inlet->tail->next = inlet_fn;
-        }
-        inlet_fn->next = NULL;
-        if (inlet->tail) {
-            inlet->tail->next = inlet_fn;
-        } else {
-            inlet->head = inlet_fn;
-        }
-        inlet->tail = inlet_fn;
-        //inlet->fns = realloc(inlet->fns, sizeof(t_inlet_fn*)+(fn_len+1));
-        fns++;
-    }
-    //inlet->fns[fn_len] = 0;
     inlet->prev = obj->in_tail;
     inlet->next = NULL;
     if(obj->in_tail) {
@@ -376,20 +373,71 @@ void p_add_inlet(t_plugobj *obj, t_sym name, t_inlet_fn *fns, void *idata)
     } else {
         obj->in_head = obj->in_tail = inlet;
     }
-    //obj->inlets = realloc(obj->inlets, sizeof(t_inlet)*(obj->inlet_count+2));
-    //obj->inlets[obj->inlet_count] = inlet;
-    //obj->inlets[obj->inlet_count+1] = 0;
     obj->inlet_count++;
+    return inlet;
+}
+
+static void p_inlet_add_fn(t_inlet *inlet, int inlet_type, void *fn) {
+    t_inlet_fn *i_fn = malloc(sizeof(t_inlet_fn));
+    i_fn->next = NULL;
+    i_fn->inlet_type = inlet_type;
+    i_fn->inlet_any = (t_inlet_any_fn)fn;
+    if (inlet->tail) {
+        inlet->tail->next = i_fn;
+    } else {
+        inlet->head = inlet->tail = i_fn;
+    }
+    inlet->tail = i_fn;    
+}
+
+void p_inlet_add_trigger_fn(t_inlet *inlet, t_inlet_trigger_fn fn)
+{
+    p_inlet_add_fn(inlet, t_type_trigger, fn);
+}
+
+void p_inlet_add_int_fn(t_inlet *inlet, t_inlet_int_fn fn)
+{
+    p_inlet_add_fn(inlet, t_type_int, fn);
+}
+
+void p_inlet_add_float_fn(t_inlet *inlet, t_inlet_float_fn fn)
+{
+    p_inlet_add_fn(inlet, t_type_float, fn);
+}
+
+void p_inlet_add_string_fn(t_inlet *inlet, t_inlet_string_fn fn)
+{
+    p_inlet_add_fn(inlet, t_type_string, fn);
+}
+
+void p_inlet_add_list_fn(t_inlet *inlet, t_inlet_list_fn fn)
+{
+    p_inlet_add_fn(inlet, t_type_list, fn);
+}
+
+void p_inlet_add_any_fn(t_inlet *inlet, t_inlet_any_fn fn)
+{
+    p_inlet_add_fn(inlet, t_type_any, fn);
 }
 
 
+void p_inlet_set_tag(t_inlet *inlet, int tag) {
+    inlet->tag = tag;
+}
+
+int p_inlet_get_tag(t_inlet *inlet) {
+    return inlet->tag;
+}
+
+
+#pragma mark - Outlet creation
 /*
  * outlet creation
  */
 
 t_outlet * p_add_outlet(t_plugobj *obj, t_sym name)
 {
-    t_outlet *outlet = malloc(sizeof(outlet));
+    t_outlet *outlet = malloc(sizeof(t_outlet));
     outlet->name = name;
     outlet->head = outlet->tail = NULL;
     outlet->prev = obj->out_tail;
@@ -405,16 +453,19 @@ t_outlet * p_add_outlet(t_plugobj *obj, t_sym name)
 }
 
 
-
 /*
  * embed-side utilities
  */
 t_list p_list_cons(int16_t a_type, void* a_data, int16_t b_type, void* b_data)
 {
-    t_list temp = {a_data, b_data, a_type, b_type};
+    t_list temp = {{a_type, .something=a_data}, malloc(sizeof(t_list))};
+    temp.rest->first.type = b_type;
+    temp.rest->first.something = b_data;
+    temp.rest->rest = NULL;
     return temp;
 }
 
+#pragma mark - Class creation
 
 static void p_default_destroy(void *_) {}
 static void p_default_redraw(void *_, t_any ___, void *__) {}
@@ -484,6 +535,7 @@ void p_create_class_alias(t_plugclass *ref, t_sym alias) {
     class_pool[class_pool_occupied++] = (t_plugclass_name){alias, ref};
 }
 
+#pragma mark - Object creation
 
 void* p_new(t_plugclass *class_spec)
 {
@@ -495,73 +547,62 @@ void* p_new(t_plugclass *class_spec)
     return temp;
 }
 
-struct arg_list {
-    char *start;
-    struct arg_list *next;
-};
-static struct arg_list* separate_args_rec(char *string, int nesting, int in_string, int ignore)
-{
-    if (!string[0]) {
-        return NULL;
-    } else if (ignore) {
-        return separate_args_rec(string+1, nesting, in_string, ignore-1);
-    } else if (string[0]=='\\') {
-        return separate_args_rec(string+1, nesting, in_string, ignore+1);
-    } else if (string[0]=='"') {
-        if (in_string) {
-            string[0] = 0;
-            return separate_args_rec(string+1, nesting, 0, ignore);
-        } else {
-            string[0] = 0;
-            if (!nesting) {
-                struct arg_list* args = malloc(sizeof(struct arg_list));
-                args->start = string+1;
-                args->next = separate_args_rec(string+1, nesting, 1, ignore);
-                return args;
-            } else {
-                return separate_args_rec(string+1, nesting, 1, ignore);
-            }
-        }
-    } else if ((string[0]==' ')||(string[0]=='\n')||(string[0]=='\t')) {
-        if (nesting||in_string||ignore) {
-            return separate_args_rec(string+1, nesting, in_string, ignore);
-        } else {
-            struct arg_list* rec = separate_args_rec(string+1, nesting, 1, ignore);
-            if (!rec || rec->start>string+2) {
-                string[0]=0;
-                struct arg_list* args = malloc(sizeof(struct arg_list));
-                args->start = string+1;
-                args->next = rec;
-                return args;
-            } else {
-                return rec;
-            }
-        }
-    } else {
-        return separate_args_rec(string+1, nesting, in_string, ignore);
-    }
-}
+
 
 t_args p_separate_args(char *string)
 {
-    int argc = 0;
-    struct arg_list *piter = malloc(sizeof(struct arg_list));
-    struct arg_list *list = separate_args_rec(string, 0, 0, 0), *iter = piter;
-    iter->start = string;
-    iter->next = list;
-    while (iter!=NULL) {
-        argc++;
-        iter=iter->next;
-    }
-    char **argv = malloc(sizeof(char*)*argc);
-    iter = piter;
-    argc = 0;
-    while (iter!=NULL) {
-        void *prev = iter;
-        argv[argc]=iter->start;
-        argc++;
-        iter=iter->next;
-        free(prev);
+    int argc = 1;
+    char **argv = malloc(sizeof(char*)*argc+1);
+    char *args = string;
+    argv[0] = args;
+    argv[1] = NULL;
+    size_t argp = 0;
+    int in_string = 0;
+    int parens = 0;
+    int skip = 0;
+    char *prev_ptr = NULL;
+    while (args[argp]!=0) {
+        if (skip>0) {
+            skip--;
+        } else {
+            switch (args[argp]) {
+                case '\\':
+                    skip++;
+                    break;
+                case '"':
+                    in_string = in_string?0:1;
+                    break;
+                case ' ':
+                case '\t':
+                case '\n':
+                    if (!in_string||!parens) {
+                        args[argp]=0;
+                        if (prev_ptr==args+argp) {
+                            argv[argc-1] = &args[argp+1];
+                        } else {
+                            argc++;
+                            argv = realloc(argv, sizeof(char*)*argc+1);
+                            argv[argc-1] = &args[argp+1];
+                            argv[argc] = 0;
+                        }
+                        prev_ptr = &args[argp+1];
+                    }
+                    break;
+                case '(':
+                case '[':
+                case '{':
+                    parens++;
+                    break;
+                case '}':
+                case ']':
+                case ')':
+                    parens--;
+                    break;
+                default:
+                    break;
+            }
+        }
+        argp++;
     }
     return (t_args){argc, argv};
 }
@@ -589,8 +630,34 @@ t_plugobj* p_create_plugobj(const char* spec, void* drawdata)
 
 void p_destroy(t_plugobj *obj) {
     obj->prototype->destructor(obj);
+    t_inlet *in = obj->in_head;
+    while (in) {
+        t_inlet *tmp = in;
+        in = in->next;
+        t_inlet_fn *fn = tmp->head;
+        while (fn) {
+            t_inlet_fn *fn_tmp = fn;
+            fn = fn->next;
+            free(fn_tmp);
+        }
+        free(tmp);
+    }
+    t_outlet *out = obj->out_head;
+    while (out) {
+        t_outlet *tmp = out;
+        out = out->next;
+        t_outlet_connection *conn = tmp->head;
+        while (conn) {
+            t_outlet_connection *conn_tmp = conn;
+            conn = conn->next;
+            free(conn_tmp);
+        }
+        free(tmp);
+    }
     free(obj);
 }
+
+#pragma mark - Object connection
 
 /*
  * connecting stuff up
@@ -633,10 +700,186 @@ int p_connect(t_plugobj *from, int outlet, t_plugobj *to, int inlet)
     return 1;
 }
 
+
+#pragma mark - [patch]
+
+t_patch* p_create_patch(void) {
+    t_patch *patch = malloc(sizeof(t_patch));
+    patch->inlets_head = patch->inlets_tail = NULL;
+    patch->outlet_head = patch->outlet_tail = NULL;
+    patch->instance_head = patch->instance_tail = NULL;
+    patch->loadbang_head = patch->loadbang_tail = NULL;
+    patch->name = NULL;
+    patch->next = patch->prev = NULL;
+    current_patch = patch;
+    return patch;
+}
+
+static t_patch* find_subpatch(t_patch *patch, const char* name) {
+    const char *ptr = name;
+    while (ptr[0]) {
+        if (ptr[0]=='/') {
+            t_patch *temp;
+            if (ptr==name) {
+                temp = patch;
+            } else {
+                char *tempname = malloc(ptr+1-name);
+                memcpy(tempname, name, ptr-name);
+                tempname[ptr-name]=0;
+                temp = find_subpatch(patch, tempname);
+                free(tempname);
+            }
+            return find_subpatch(temp,ptr+1);
+        }
+        ptr++;
+    }
+    t_sym sym = find_sym(name);
+    if (sym) {
+        t_patch *subpatch = patch->subpatch_head;
+        while (subpatch) {
+            if (subpatch->name == sym) {
+                return subpatch;
+            }
+            subpatch = subpatch->next;
+        }
+    }
+    return NULL;
+}
+
+static void patchobj_inlet_perform(void *obj, t_any any, void *idata) {
+    inlet_obj *iobj = idata;
+    o_any(iobj->out, any);
+}
+
+static void* patchobj_create(int argc, char **argv) {
+    patch_obj* obj = NULL;
+    if (argc > 1) {
+        t_patch *ref = find_subpatch(current_patch,argv[1]);
+        if (ref) {
+            obj = p_new(patch_class);
+            obj->patchref = ref;
+            if (ref->instance_tail) {
+                ref->instance_tail->next = obj;
+                obj->prev = ref->instance_tail;
+            } else {
+                ref->instance_head = obj;
+                obj->prev = NULL;
+            }
+            obj->next = NULL;
+            ref->instance_tail = obj;
+        } else {
+            t_patch *ref = p_create_patch();
+            // find patch address if 
+            if (current_patch->subpatch_tail) {
+                current_patch->subpatch_tail->next = ref;
+            } else {
+                current_patch->subpatch_head = ref;
+            }
+            ref->prev = current_patch->subpatch_tail;
+            ref->next = NULL;
+            current_patch->subpatch_tail = ref;
+            // create subpatch here
+        }
+    }
+    return obj;
+}
+
+static void patchobj_destroy(void *obj) {
+    patch_obj* patch = obj;
+    if (patch->prev) {
+        patch->prev->next = patch->next;
+    } else {
+        patch->patchref->instance_head = patch->next;
+    }
+    if (patch->next) {
+        patch->next->prev = patch->prev;
+    } else {
+        patch->patchref->instance_tail = patch->prev;
+    }
+    if (patch->patchref->instance_head == NULL && patch->patchref->instance_tail == NULL) {
+        // destroy subpatch here
+    }
+}
+
+#pragma mark - [inlet]
+
+static void* inlet_create(int argc, char **argv) {
+    inlet_obj *inlet = p_new(inlet_class);
+    inlet->out = add_outlet(inlet, "incoming");
+    if (current_patch->inlets_tail) {
+        current_patch->inlets_tail->next = inlet;
+    } else {
+        current_patch->inlets_head = inlet;
+    }
+    inlet->prev = current_patch->inlets_tail;
+    if (!current_patch->inlets_head) {
+        current_patch->inlets_head = inlet;
+    }
+    return inlet;
+}
+
+static void inlet_destroy(void* obj) {
+    inlet_obj *inlet = obj;
+    if (inlet->prev) {
+        inlet->prev->next = inlet->next;
+    } else {
+        inlet->owner->inlets_head = inlet->next;
+    }
+    if (inlet->next) {
+        inlet->next->prev = inlet->prev;
+    } else {
+        inlet->owner->inlets_tail = inlet->prev;
+    }
+}
+
+#pragma mark - [outlet]
+
+static void outlet_perform(void *obj, t_any any, void*idata) {
+    outlet_obj* oobj = obj;
+    o_any(oobj->out, any);
+}
+
+static void* outlet_create(int argc, char **argv) {
+    outlet_obj *obj = p_new(outlet_class);
+    t_inlet *outgoing = add_inlet(obj, "outgoing", NULL);
+    p_inlet_add_any_fn(outgoing, outlet_perform);
+    t_sym name = gen_sym("out");
+    if (argc > 1) {
+        name = gen_sym(argv[1]);
+    }
+    obj->out = add_outlet(current_patch, name);
+    return obj;
+}
+
+static void outlet_destroy(void*obj) {
+    outlet_obj *outlet = obj;
+    if (outlet->prev) {
+        outlet->prev->next = outlet->next;
+    } else {
+        outlet->owner->outlet_head = outlet->next;
+    }
+    if (outlet->next) {
+        outlet->next->prev = outlet->prev;
+    } else {
+        outlet->owner->outlet_tail = outlet->prev;
+    }
+}
+
+#pragma mark - Standard class library setup
+
 void p_setup(void)
 {
+    outlet_class = p_create_plugclass(gen_sym("outlet"), sizeof(outlet_obj),
+                                      outlet_create, outlet_destroy, NULL, NULL);
+    inlet_class = p_create_plugclass(gen_sym("inlet"), sizeof(inlet_obj),
+                                     inlet_create, inlet_destroy, NULL, NULL);
+    patch_class = p_create_plugclass(gen_sym("patch"), sizeof(patch_obj),
+                                     patchobj_create, patchobj_destroy, 0, 0);
+
     p_std_setup();
 }
+
+#pragma mark - Utilities
 
 void p_bang(t_plugobj *obj, int inlet)
 {
